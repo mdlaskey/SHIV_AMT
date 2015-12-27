@@ -18,6 +18,7 @@ console.log(background+" "+roboCoach+" "+expert+" "+summer+" "+fnl)
 var ctx = canvas.getContext("2d");
 canvas.width = 512;
 canvas.height = 480;
+started = false
 
 //
 //document.body.appendChild(canvas);
@@ -83,7 +84,7 @@ addEventListener("keyup", function (e) {
 	delete keysDown[e.keyCode];
 }, false);
 
-var reset_car = function(){
+var reset_car = function(complete){
 	car.v = 0, // movement in pixels per second
 	car.theta = Math.PI,
 	car.x = canvas.width/2,
@@ -96,6 +97,9 @@ var reset_car = function(){
 	car.interval = 40,
 	car.t = 40
 	fdbback = 0
+	if(!complete){
+		started = false
+	}
 
 
 }
@@ -222,6 +226,15 @@ var make_data= function (){
 	return data
 }
 
+var start = function (modifier){
+	if(! started){
+		document.getElementById('text').style.visibility = 'visible'
+	}
+	if(13 in keysDown){
+		started = true
+		document.getElementById('text').style.visibility = 'hidden'
+	}
+}
 
 // Update game objects
 var update = function (modifier) {
@@ -243,6 +256,7 @@ var update = function (modifier) {
 	if (39 in keysDown) { // Player holding right
 		angle = -0.1;
 	}
+
 	state = make_data()
 	state.push({
 		key: "angle",
@@ -253,32 +267,33 @@ var update = function (modifier) {
 		value: acc
 	})
 
-	$.ajax('http://127.0.0.1:5000/get_help', {
+
+	if(inOil()){
+
+		$.ajax('http://127.0.0.1:5000/get_help', {
 	                type: "GET",
 	                data: state
 	                });
-
-	// if(inOil()){
 		
-	// 	if(roboCoach){
-	// 		$.ajax('http://127.0.0.1:5000/get_stuff', {
-	// 	                dataType: 'jsonp',
-	// 	    			 // The name of the callback parameter, as specified by the YQL service
-	// 	    			jsonp: "callback",
+		if(roboCoach){
+			$.ajax('http://127.0.0.1:5000/get_stuff', {
+		                dataType: 'jsonp',
+		    			 // The name of the callback parameter, as specified by the YQL service
+		    			jsonp: "callback",
 		 
-	// 					// Work with the response
-	// 					success: function( response ) {
-	// 					     // server response
+						// Work with the response
+						success: function( response ) {
+						     // server response
 						    
-	// 					    fdbback = parseFloat(response.user)
-	// 					    console.log( fdbback);
-	// 					}
-	// 		});
-	// 	}
-	// 	else if(expert){
-	// 		expertCoach()
-	// 	}
-	// }
+						    fdbback = parseFloat(response.user)
+						    console.log( fdbback);
+						}
+			});
+		}
+		else if(expert){
+			expertCoach()
+		}
+	}
 
 	dynamics(angle,acc)
 
@@ -360,7 +375,7 @@ var finish = function(complete){
                 data: roboCoach
                 });
 
-	reset_car()
+	reset_car(complete)
 	requestAnimationFrame(main);
 }
 
@@ -368,7 +383,7 @@ var finish = function(complete){
 var main = function () {
 	var now = Date.now();
 	var delta = now - then;
-	if(round < ROUNDS){
+	if(round < ROUNDS && bgReady && started){
 		if(t<T){
 		
 			update(delta / 1000);
@@ -386,6 +401,13 @@ var main = function () {
 			finish(round == ROUNDS)
 		}
 	}
+	else if(!bgReady || !started){
+		// Request to do this again ASAP
+		requestAnimationFrame(main);
+		//render();
+		start()
+	}
+
 
 };
 
