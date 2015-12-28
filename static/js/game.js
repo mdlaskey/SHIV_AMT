@@ -68,8 +68,8 @@ var car = {
 	ref_speed: 5,
 	help: 0,
 	low: false,
-	interval: 40,
-	t: 40
+	interval: 45,
+	t: 45
 };
 
 
@@ -94,8 +94,8 @@ var reset_car = function(complete){
 	car.ref_speed = 5,
 	car.help = 0,
 	car.low = false,
-	car.interval = 40,
-	car.t = 40
+	interval = 45,
+	car.t = 45,
 	fdbback = 0
 	if(!complete){
 		started = false
@@ -156,16 +156,30 @@ var pumpedBrakes = function(){
 	else{ 
 		car.t = 0
 		if(car.low){ 
-			car.ref++;  
+			car.ref = car.v 
 			car.low = false
 		}
 		else{
-			car.ref--; 
+			car.ref = car.v
 			car.low = true
 		}
 	}
-	car.help = (car.ref-car.v)
-	return Math.abs(car.ref - car.v)
+	console.log("REF "+car.ref + " V "+car.v + " LOW " + car.low + " T " +car.t)
+
+	if(car.low && car.v >= car.ref){
+		car.help = -1
+		return 1
+	}
+	else if(!car.low && car.v <= car.ref){
+		car.help = 1
+		return 1
+	}
+	else{
+		car.help = 0
+		return 0
+	}
+		
+	
 }
 var dynamics = function(angle,acc){
 	if(!inOil()){
@@ -182,7 +196,7 @@ var dynamics = function(angle,acc){
 		val = pumpedBrakes()
 		
 		if(val > 0.0){
-			angle = angle-.15
+			angle = 0.1*angle-.15
 		}
 	}
 	car_dyn(angle,acc)
@@ -195,7 +209,7 @@ var dynamics = function(angle,acc){
 		}
 	}
 
-	if(!inOil()){
+	if(!inOil() || summer){
 		if(car.v > 6){
 			car.v = 6
 		}
@@ -270,7 +284,7 @@ var update = function (modifier) {
 
 	if(inOil()){
 
-		$.ajax('http://0.0.0.0:5000/get_help', {
+		$.ajax('http://128.32.164.66:5000/get_help', {
 	                type: "GET",
 	                data: state
 	                });
