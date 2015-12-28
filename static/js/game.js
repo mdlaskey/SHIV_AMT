@@ -270,13 +270,13 @@ var update = function (modifier) {
 
 	if(inOil()){
 
-		$.ajax('http://127.0.0.1:5000/get_help', {
+		$.ajax('http://0.0.0.0:5000/get_help', {
 	                type: "GET",
 	                data: state
 	                });
 		
 		if(roboCoach){
-			$.ajax('http://127.0.0.1:5000/get_stuff', {
+			$.ajax('http://0.0.0.0:5000/get_stuff', {
 		                dataType: 'jsonp',
 		    			 // The name of the callback parameter, as specified by the YQL service
 		    			jsonp: "callback",
@@ -370,7 +370,7 @@ var finish = function(complete){
 		document.getElementById('next').style.visibility = 'visible'
 	}
 
-	$.ajax('http://127.0.0.1:5000/finish_trial', {
+	$.ajax('http://0.0.0.0:5000/finish_trial', {
                 type: "GET",
                 data: roboCoach
                 });
