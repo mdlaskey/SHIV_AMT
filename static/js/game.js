@@ -377,6 +377,9 @@ if(fnl || summer){
 	ROUNDS = 1
 }
 T=500
+if(summer){
+	T = 1100
+}
 t=0
 
 var finish = function(complete){
