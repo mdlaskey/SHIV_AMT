@@ -20,6 +20,9 @@ canvas.width = 512;
 canvas.height = 480;
 started = false
 
+workerID = psiTurk.taskdata.get('workerId')
+console.log(psiTurk)
+
 //
 //document.body.appendChild(canvas);
 
@@ -115,6 +118,25 @@ var car_dyn = function(angle,acc){
 	car.v = car.v + acc
 	console.log(car.x+" "+car.y)
 
+}
+
+ advice = []
+var learningCoach = function(){
+	for(i=0; i<advice.length; i++){
+		state = advice[i][0]
+		sum = Math.pow(car.x-state[0],2)
+		sum += Math.pow(car.y-state[1],2)
+		sum += Math.pow(car.v - state[4],2)
+		if(sum< epsilon){
+			if(advice[i][2] > conf){
+				advice = advice[1][1]
+			}
+			else{
+				advice = 0
+			}
+		return
+		}
+	}
 }
 
 
@@ -222,6 +244,10 @@ var dynamics = function(angle,acc){
 var make_data= function (){
 	data = []
 	data.push({
+		key: "key",
+		value: workerID
+	})
+	data.push({
 		key: "x",
 		value: -(car.x-1700)+(canvas.width/2 - 1385)
 	})
@@ -282,30 +308,19 @@ var update = function (modifier) {
 	})
 
 
+
 	if(inOil()){
 
-		$.ajax('http://128.32.164.66:5000/get_help', {
+		$.ajax('http://0.0.0.0:5000/get_help', {
 	                type: "GET",
 	                data: state
 	                });
 		
 		if(roboCoach){
-			$.ajax('http://0.0.0.0:5000/get_stuff', {
-		                dataType: 'jsonp',
-		    			 // The name of the callback parameter, as specified by the YQL service
-		    			jsonp: "callback",
-		 
-						// Work with the response
-						success: function( response ) {
-						     // server response
-						    
-						    fdbback = parseFloat(response.user)
-						    console.log( fdbback);
-						}
-			});
+			console.log("Give advice")	
 		}
 		else if(expert){
-			expertCoach()
+		 	expertCoach()
 		}
 	}
 
@@ -387,9 +402,28 @@ var finish = function(complete){
 		document.getElementById('next').style.visibility = 'visible'
 	}
 
+	keys = []
+	keys.push({
+		key: "key",
+		value: workerID
+	})
+	keys.push({
+		key: "roboCoach",
+		value: roboCoach
+	})
+
+
 	$.ajax('http://0.0.0.0:5000/finish_trial', {
                 type: "GET",
-                data: roboCoach
+                data: keys,
+                // Work with the response
+				success: function( response ) {
+			     // server response
+			    
+			    if(roboCoach){
+			    	advice = response.items
+			    }
+				}
                 });
 
 	reset_car(complete)

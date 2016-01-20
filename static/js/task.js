@@ -15,60 +15,17 @@ var mycounterbalance = counterbalance;  // they tell you which condition you hav
 // All pages to be loaded
 var pages = [
 	"instructions/instruct-1.html",
-	"instructions/instruct-2.html",
-	"instructions/instruct-3.html",
-	"instructions/instruct-4.html",
-	"instructions/instruct-5.html",
-	"instructions/instruct-ready.html",
-	"winter_game_nc.html",
-	"summer_game.html",
-	"final_game.html",
-	"winter_game_ec.html",
-	"postquestionnaire.html"
+	"izzy_sim.html"
 ];
 
 psiTurk.preloadPages(pages);
 
 
-
-var instructionPages_nc = [ // add as a list as many pages as you like
+var instructionPages = [ // add as a list as many pages as you like
 	"instructions/instruct-1.html",
-	"instructions/instruct-2.html",
-	"summer_game.html",
-	"instructions/instruct-3.html",
-	"winter_game_nc.html",
-	"instructions/instruct-5.html",
-	"final_game.html"
-
+	"izzy_sim.html"
 	
 ];
-
-var instructionPages_ec = [ // add as a list as many pages as you like
-	"instructions/instruct-1.html",
-	"instructions/instruct-2.html",
-	"summer_game.html",
-	"instructions/instruct-3.html",
-	"instructions/instruct-4.html",
-	"winter_game_ec.html",
-	"instructions/instruct-5.html",
-	"final_game.html"
-
-	
-];
-
-// var instructionPages_rc = [ // add as a list as many pages as you like
-// 	"instructions/instruct-1.html",
-// 	"instructions/instruct-2.html",
-// 	"summer_game.html",
-// 	"instructions/instruct-3.html",
-// 	"instructions/instruct-4.html",
-// 	"winter_game_rc.html",
-// 	"instructions/instruct-5.html",
-// 	"final_game.html"
-
-	
-// ];
-
 
 
 
@@ -96,6 +53,8 @@ var CarExperiment = function() {
 	
 };
 
+wkrID =  psiTurk.taskdata.get('workerId')
+
 /****************
 * Questionnaire *
 ****************/
@@ -104,7 +63,10 @@ var Questionnaire = function() {
 
 	var error_message = "<h1>Oops!</h1><p>Something went wrong submitting your HIT. This might happen if you lose your internet connection. Press the button to resubmit.</p><button id='resubmit'>Resubmit</button>";
 	var responses = []; // create an empty array
-
+	responses.push({
+		key: "ID",
+		value: wkrID
+	})
 	
 	record_responses = function() {
 
@@ -150,7 +112,7 @@ var Questionnaire = function() {
 	
 	$("#next").click(function () {
 	    record_responses();
-	    $.ajax('http://127.0.0.1:5000/save_data', {
+	    $.ajax('http://0.0.0.0:5000/save_data', {
                 type: "GET",
                 data: responses
                 });
@@ -178,7 +140,7 @@ var currentview;
 $(window).load( function(){
 
 	psiTurk.doInstructions(
-		instructionPages_nc, // a list of pages you want to display in sequence
+		instructionPages, // a list of pages you want to display in sequence
 		function() { currentview = new Questionnaire(); } 
 	);
 
