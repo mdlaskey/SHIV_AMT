@@ -4,7 +4,9 @@
 
 var canvas = document.getElementById("canvas");
 
-
+if(document.body != null){  
+	document.getElementById('next').style.visibility = 'hidden'
+}
 
 
 var ctx = canvas.getContext("2d");
@@ -68,6 +70,39 @@ var circImage = new Image();
 circImage.src =  "static/images/RotTable.png";
 circImage.onload = function () {
 	circReady = true;
+};
+
+
+
+var armReady_t = false;
+armImage_t.src =  "static/images/Arm_lbl.png";
+armImage_t.onload = function () {
+	armReady_t = true;
+};
+
+// Gripper Top Image
+var gptReady_t = false;
+var gptImage_t = new Image();
+gptImage_t.src =  "static/images/Gripper_t_lbl.png";
+gptImage_t.onload = function () {
+	gptReady_t = true;
+};
+
+
+// Gripper Bottom Image
+var gpdReady_t = false;
+var gpdImage_t = new Image();
+gpdImage_t.src =  "static/images/Gripper_lbl.png";
+gpdImage_t.onload = function () {
+	gpdReady_t = true;
+};
+
+// Circular image
+var circReady_t = false;
+var circImage_t = new Image();
+circImage_t.src =  "static/images/RotTable_lbl.png";
+circImage_t.onload = function () {
+	circReady_t = true;
 };
 
 
@@ -203,40 +238,6 @@ function drawRotatedImage(image, x, y, angle) {
 	ctx.restore(); 
 }
 
-function drawBall(image, x, y, angle) { 
- 
-	// save the current co-ordinate system 
-	// before we screw with it
-	ctx.save(); 
-	ctx.translate(240,220)
-	// rotate around that point, converting our 
-	// angle from degrees to radians 
-	ctx.rotate(angle) //* TO_RADIANS);
- 
-	// move to the middle of where we want to draw our image
-	ctx.translate(x, y);
- 
- 
-	// draw it up and to the left by half the width
-	// and height of the image 
-	ctx.drawImage(image, -(image.width/2), -(image.height/2));
-
-
-	if (gptReady){
-		ctx.drawImage(gptImage,230,-220-izzy.grasp);
-	}
-
-	if (gpdReady){
-		ctx.drawImage(gpdImage,230,-220+izzy.grasp);
-	}
- 
-	// and restore the co-ords to how they were when we began
-	ctx.restore(); 
-}
-
-
-
-
 
 
 
@@ -281,13 +282,10 @@ var render = function () {
 		drawRotatedImage(circImage,250,225,izzy.table_angle);
 	}
 
-	// if (armReady){
-	// 	drawArm(armImage,izzy.arm_x,izzy.arm_y,izzy.theta);
-	// }
+	if (armReady){
+		drawArm(armImage,izzy.arm_x,izzy.arm_y,izzy.theta);
+	}
 
-	// // if (ballReady) {
-	// // 	drawBall(ballImage, ball_pos[r][0], ball_pos[r][1],izzy.table_angle);
-	// // }
 };
 
 
@@ -307,7 +305,7 @@ var mouseToPos = function(){
 	sign = Math.sign(m_l2 - m_old_l2)
 	//Get Magnitude 
 	l2 = Math.sqrt((Math.pow(v_x,2)+Math.pow(v_y,2)))
-	console.log(l2)
+
 	izzy.thrust += sign*l2
 
 
@@ -320,29 +318,18 @@ var mouseToPos = function(){
 
 // Draw everything
 var complete = function () {
+	running = false
+	document.getElementById('next').style.visibility = 'visible'
 
 };
 
-var gotBall = function (angle) {
-	
 
-	gripper_x = izzy.arm_x
-	gripper_y = izzy.arm_y*6
-	l1 = Math.abs(gripper_x - ball_pos[r][0])+Math.abs(gripper_y-ball_pos[r][1])
-	eps = 20
-	if(l1 < eps){
-		return true
-	}
-	else{
-		return false
-	}
-}
-
-ball_pos = [[100,100],[100,-100],[100,-100]]
 
 
 r = 0
 running = false
+step = 0
+STEP = 200
 // The main game loop
 var main = function () {
 
@@ -351,9 +338,10 @@ var main = function () {
 		requestAnimationFrame(main);
 		render()
 		update()
+		step += 1
 	}
 
-	if(r > 2){
+	if(step>STEP){
 		complete()
 	}
 

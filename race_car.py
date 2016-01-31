@@ -139,9 +139,6 @@ def gen(camera):
 		       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 
-
-
-
 @custom_code.route('/video_feed')
 @crossdomain(origin='*')
 def video_feed():
