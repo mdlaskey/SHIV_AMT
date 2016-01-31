@@ -1,10 +1,16 @@
 # this file imports custom routes into the experiment server
 import sys
+
 sys.path.append('/Users/michaelluskey/Documents/RL/LFD/lapmaster1.1/')
-#from race_game_asst import RaceGame
+#sys.path.append('/home/laskeymd/RL')
+
+
 import IPython 
+import cv2 
 import numpy as np
 from PIL import Image
+from camera import Camera
+from flask import send_file
 
 
 import cPickle as pickle
@@ -24,6 +30,7 @@ from datetime import timedelta
 from psiturk.db import db_session, init_db
 from Classes.Supervisor import Supervisor 
 from Classes.RobotCont import RobotCont
+from Classes.RobotQ import RobotQ
 from psiturk.models import Participant
 from json import dumps, loads
 from cStringIO import StringIO
@@ -38,12 +45,13 @@ custom_code = Blueprint('custom_code', __name__, template_folder='templates', st
 custom_code = Flask(__name__)
 custom_code.config['PROPAGATE_EXCEPTIONS'] = True
 
-
+QLearning = True
 
 AllData = dict()
 CurrentData = dict()
 CumData = dict()
-rCoach = RobotCont()
+Coaches = dict()
+camera = []
 
 supervisor = Supervisor()
 
@@ -90,19 +98,13 @@ def crossdomain(origin=None, methods=None, headers=None,
         return update_wrapper(wrapped_function, f)
     return decorator
 
-def serve_pil_image(pil_img):
-    img_io = StringIO()
-    pil_img.save(img_io, 'JPEG')
-    #print base64.b64encode(im_data.getvalue())
-    
-    return base64.b64encode(im_data.getvalue())
 
 
 
 @custom_code.route('/get_help')
 @crossdomain(origin='*')
-def get_help():
-	
+def get_video():
+
 	#Sort Data
 	data = dict(request.args)
 
@@ -124,57 +126,57 @@ def get_help():
 	return jsonify(result={"status": 200})
 
 
-@custom_code.route('/finish_trial')
+@custom_code.route('/')
+def index():
+    """Video streaming home page."""
+    return render_template('index.html')
+
+def gen(camera):
+    """Video streaming generator function."""
+    while True:
+		frame = camera.get_frame()
+		yield (b'--frame\r\n'
+		       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+
+
+
+
+@custom_code.route('/video_feed')
 @crossdomain(origin='*')
-def finish_trial(): 
+def video_feed():
+	"""Video streaming route. Put this in the src attribute of an img tag."""
+	print "VISTED HERE"
+
+	return Response(gen(camera),mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@custom_code.route('/state_feed')
+@crossdomain(origin='*')
+def state_feed():
+	"""Return states of current image."""
 	data = dict(request.args)
+
 	key = data['undefined'][0]
-	useCoach = data['undefined'][1]
+	video_id = data['undefined'][1]
+	state = data['undefined'][2].split()
+	label =  data['undefined'][3].split()
+	print "LABEL ",label
 
-	if not (key in CumData):
-		CumData[key] = [CurrentData[key]]
+	idx =  int(data['undefined'][4])
+
+	
+	if(video_id == 'not_init'):
+		[state,idx] = camera.get_state()
+		return jsonify(result={"status": 200}, items = state,id = camera.get_vid(),idx = idx)
 	else:
-		CumData[key].append(CurrentData[key])
+		[state,idx] = camera.get_state()
+		camera.writeImage(label,idx)
 
-	if(useCoach):
-		costs = np.asarray(CurrentData[key][2])
-		states = np.asarray(CurrentData[key][0])
-		controls = np.asarray(CurrentData[key][1])
-		rCoach.updateQ(costs,states,controls)
-		fdback = rCoach.batchFeedBack()
-	
-		return jsonify(result = {"status":200}, items =fdback)
-		
-	return jsonify(result = {"status":200}, items = [])
-
-	
-@custom_code.route('/get_stuff')
-def get_stuff(): 
-
-	#fdbback = [[np.zeros(2),np.zeros(2)],[np.zeros(2),np.zeros(2)]]
-	
-	c = np.zeros(2).tolist()
-	fdback = [[c,c],[c,c]]
-	
-
-	return jsonify(user= "hi",result={"status": 200},items=fdback)
-
-
-
-@custom_code.route('/save_data')
-@crossdomain(origin='*')
-def save_data():
-	responses = dict(request.args)
-	key = responses['undefined'][0]
-	total_data = [responses,CumData[key]]
-	AllData[key] = total_data
-	pickle.dump(AllData,open('AllData.p','wb'))
-	#IPython.embed()
-	
-
-
+	return jsonify(result={"status": 200}, items = state, id = camera.get_vid(),idx = idx)
 
 if __name__ == '__main__':
 	print "running"
-
-	custom_code.run(host='0.0.0.0')
+	camera = Camera()
+	print "loaded"
+	print "STUFF"
+	custom_code.run(host='0.0.0.0', threaded = True)

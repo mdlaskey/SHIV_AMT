@@ -422,9 +422,9 @@ var finish = function(complete){
 			    
 			    if(roboCoach){
 			    	advice = response.items
-			    }
 				}
-                });
+		}
+    });
 
 	reset_car(complete)
 	requestAnimationFrame(main);
