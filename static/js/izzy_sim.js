@@ -6,18 +6,26 @@ var canvas = document.getElementById("canvas");
 
 if(document.body != null){  
 	document.getElementById('next').style.visibility = 'hidden'
+	document.getElementById('ARM').style.visibility = 'hidden'
+	document.getElementById('GRIPPER').style.visibility = 'hidden'
+	document.getElementById('TABLE').style.visibility = 'hidden'
 }
 
 
 var ctx = canvas.getContext("2d");
-canvas.width = 512;
-canvas.height = 480;
+canvas.width = 504;
+canvas.height = 429;
 started = false
 current_state = [0,0,0,0]
 
 workerID = psiTurk.taskdata.get('workerId')
 console.log(psiTurk)
 ball = [0,0]
+
+
+ARM_X = 210
+ARM_Y = 700
+THRUST_0 = 10
 //
 //document.body.appendChild(canvas);
 
@@ -73,12 +81,14 @@ circImage.onload = function () {
 };
 
 
-
+var armImage_t = new Image();
 var armReady_t = false;
 armImage_t.src =  "static/images/Arm_lbl.png";
 armImage_t.onload = function () {
 	armReady_t = true;
 };
+
+
 
 // Gripper Top Image
 var gptReady_t = false;
@@ -136,11 +146,11 @@ addEventListener("keyup", function (e) {
 // Game objects
 var izzy = {
 	table_angle: 0, // movement in pixels per second
-	theta: 0,
+	theta: -Math.PI/2,
 	thrust: 0,
 	arm_x: 0,
 	arm_y: 0, 
-	grasp: 0
+	grasp: 30
 };
 
 
@@ -149,14 +159,14 @@ var dynamics = function(angle,thrust,rot_table,grasper){
 	izzy.theta += angle
 
 
-	if(izzy.theta > 0.51){
-		izzy.theta = 0.51
+	if(izzy.theta > 0.3-Math.PI/2){
+		izzy.theta = 0.3-Math.PI/2
 	}
-	else if(izzy.theta < -0.51){
-		izzy.theta = -0.51
+	else if(izzy.theta < -0.3-Math.PI/2){
+		izzy.theta = -0.3-Math.PI/2
 	}
 
-	izzy.thrust += thrust
+	// /izzy.thrust = THRUST_0
 
 	if(izzy.thrust > 140){
 		izzy.thrust = 140
@@ -165,9 +175,8 @@ var dynamics = function(angle,thrust,rot_table,grasper){
 		izzy.thrust = 0
 	}
 
-	izzy.arm_x = izzy.thrust*Math.cos(izzy.theta)
-	izzy.arm_y = izzy.thrust*Math.sin(izzy.theta)
-
+	izzy.arm_x = Math.abs(izzy.thrust*Math.sin(izzy.theta))
+	izzy.arm_y = Math.abs(izzy.thrust*Math.cos(izzy.theta))
 	izzy.grasp += grasper
 
 
@@ -209,9 +218,7 @@ var update = function (modifier) {
 	}
 
 	dynamics(angle,thrust,rot_table,grasper)
-	if(gotBall()){
-		r += 1
-	}
+	checkPoints()
 
 };
 
@@ -239,37 +246,83 @@ function drawRotatedImage(image, x, y, angle) {
 }
 
 
-
-
 function drawArm(image, x, y, angle) { 
  
 	// save the current co-ordinate system 
 	// before we screw with it
-	ctx.save(); 
-	ctx.translate(-50,220)
-	// rotate around that point, converting our 
-	// angle from degrees to radians 
-	ctx.rotate(angle) //* TO_RADIANS);
- 
-	// move to the middle of where we want to draw our image
-	ctx.translate(x, y);
- 
- 
+	 ctx.save(); 
+	 ctx.translate(ARM_X,ARM_Y)
+	 ctx.rotate(angle)
+	 ctx.translate(x,y)
+	
+
 	// draw it up and to the left by half the width
 	// and height of the image 
-	ctx.drawImage(image, -(image.width/2), -(image.height/2));
+	ctx.drawImage(image,0, 0);
 
 
 	if (gptReady){
-		ctx.drawImage(gptImage,230,-220-izzy.grasp);
+		ctx.drawImage(gptImage,460,-178-izzy.grasp);
 	}
 
 	if (gpdReady){
-		ctx.drawImage(gpdImage,230,-220+izzy.grasp);
+		ctx.drawImage(gpdImage,460,-178+izzy.grasp);
 	}
  
 	// and restore the co-ords to how they were when we began
 	ctx.restore(); 
+}
+
+
+
+var checkPoints = function(){
+	//Check ARM
+	if(r == 0){
+
+		x_t = 70.2
+		y_t = 38.35
+		theta_t = 0.2-Math.PI/2
+		if (armReady_t){
+			drawArm(armImage_t,x_t,y_t,theta_t);
+		}
+		console.log("Izzy State "+izzy.arm_x+" "+izzy.arm_y+" "+izzy.theta)
+		if(Math.abs(izzy.arm_x - x_t)<10 && Math.abs(izzy.arm_y - y_t/2)<10){
+			if(Math.abs(theta_t - izzy.theta)<0.1){
+				r += 1
+			}
+		}
+
+
+		document.getElementById('ARM').style.visibility = 'visible'
+		document.getElementById('GRIPPER').style.visibility = 'hidden'
+		document.getElementById('TABLE').style.visibility = 'hidden'
+	}
+	//Check Gripper 
+	else if(r == 1){
+
+		if(izzy.grasp < 19){
+			r+=1
+		}
+
+		document.getElementById('ARM').style.visibility = 'hidden'
+		document.getElementById('GRIPPER').style.visibility = 'visible'
+		document.getElementById('TABLE').style.visibility = 'hidden'
+	}
+	//Check Table
+	else if(r == 2){
+
+		if (circReady_t){
+			drawRotatedImage(circImage_t,250,225,1.0);
+		}
+		if(Math.abs(izzy.table_angle - 1.0)<0.01){
+			r+=1
+			document.getElementById('TABLE').style.visibility = 'hidden'
+		}
+
+		document.getElementById('ARM').style.visibility = 'hidden'
+		document.getElementById('GRIPPER').style.visibility = 'hidden'
+		document.getElementById('TABLE').style.visibility = 'visible'
+	}
 }
 
 fdbback = 0;
@@ -292,25 +345,25 @@ var render = function () {
 var mouseToPos = function(){
 	//Translate to ARM Cordinate Frame
 	m_x = m_pose[0]+50
-	m_y = m_pose[1]-220
+	m_y = m_pose[1]
 	m_x_old = m_pose_old[0]+50
-	m_y_old = m_pose_old[1]-220
+	m_y_old = m_pose_old[1]
 
 
 	v_x = m_x - m_x_old
 	v_y = m_y - m_y_old
 
-	m_l2 = Math.sqrt((Math.pow(m_x,2)+Math.pow(m_y,2)))
-	m_old_l2 =  Math.sqrt((Math.pow(m_x_old,2)+Math.pow(m_y_old,2)))
+	m_l2 = Math.sqrt((Math.pow(m_y,2)))
+	m_old_l2 =  Math.sqrt((Math.pow(m_y_old,2)))
 	sign = Math.sign(m_l2 - m_old_l2)
 	//Get Magnitude 
-	l2 = Math.sqrt((Math.pow(v_x,2)+Math.pow(v_y,2)))
+	l2 = Math.sqrt((Math.pow(v_y,2)))
 
-	izzy.thrust += sign*l2
+	izzy.thrust += -sign*l2
 
 
 	//Get Anlge 
-	izzy.theta += (m_y-m_y_old)*0.005
+	izzy.theta += (m_x-m_x_old)*0.005
 	m_pose_old = m_pose
 
 }
@@ -324,10 +377,8 @@ var complete = function () {
 };
 
 
-
-
 r = 0
-running = false
+running = true
 step = 0
 STEP = 200
 // The main game loop
@@ -341,7 +392,7 @@ var main = function () {
 		step += 1
 	}
 
-	if(step>STEP){
+	if(r>2){
 		complete()
 	}
 

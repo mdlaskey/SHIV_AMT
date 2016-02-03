@@ -164,16 +164,15 @@ def state_feed():
 	
 	if(video_id == 'not_init'):
 		[state,idx] = camera.get_state()
-		return jsonify(result={"status": 200}, items = state,id = camera.get_vid(),idx = idx)
+		return jsonify(result={"status": 200}, items = state,id = camera.get_vid(),idx = idx, end=camera.end(idx))
 	else:
 		[state,idx] = camera.get_state()
 		camera.writeImage(label,idx)
 
-	return jsonify(result={"status": 200}, items = state, id = camera.get_vid(),idx = idx)
+	return jsonify(result={"status": 200}, items = state, id = camera.get_vid(),idx = idx,end=camera.end(idx))
 
 if __name__ == '__main__':
 	print "running"
 	camera = Camera()
-	print "loaded"
-	print "STUFF"
+
 	custom_code.run(host='0.0.0.0', threaded = True)

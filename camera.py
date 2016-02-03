@@ -11,20 +11,23 @@ class Camera(object):
         self.frames = []
         self.states = []
         self.img_name = []
-        self.file_lbl = open('Video_Example/labels.txt','w')
-        file_str = open('Video_Example/states.txt','r')
+        self.file_lbl = open('rollout5/labels.txt','w')
+        file_str = open('rollout5/states.txt','r')
         for i in range(100):
-            self.frames.append(open("Video_Example/frame_"+str(i)+".jpg",'rb').read())
-            self.img_name.append("Video_Example/frame_"+str(i)+".jpg")
+            self.frames.append(open("rollout5/rollout5_frame_"+str(i)+".jpg",'rb').read())
+            self.img_name.append("rollout5/rollout5_frame_"+str(i)+".jpg")
             line = file_str.readline()
             line = line.split()
-            state = [line[1],line[3],line[5],line[6]]
+            state = line[1:5]
+            print state
             self.states.append(state)
 
     def get_frame(self):
+        # return self.frames[5]
         return self.frames[int(time()) % 100]
 
     def get_state(self):
+        # return self.states[5],5
         return self.states[int(time()) % 100], int(time()) % 100
 
     def stringToArray(self,data):

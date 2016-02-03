@@ -4,12 +4,15 @@
 
 var canvas = document.getElementById("canvas");
 
+if(document.body != null){  
+	document.getElementById('next').style.visibility = 'hidden'
+}
 
 
 
 var ctx = canvas.getContext("2d");
-canvas.width = 512;
-canvas.height = 480;
+canvas.width = 420;
+canvas.height = 420;
 started = false
 
 
@@ -33,11 +36,11 @@ bgImage.onload = function () {
 };
 // Car image
 var armReady = false;
-var armImage = new Image();
+var armImage_t = new Image();
+var armImage = new Image()
 
-
-armImage.src =  "static/images/Arm_lbl.png";
-armImage.onload = function () {
+armImage_t.src =  "static/images/Arm_lbl.png";
+armImage_t.onload = function () {
 	armReady = true;
 };
 
@@ -47,6 +50,13 @@ var gptImage = new Image();
 gptImage.src =  "static/images/Gripper_t_lbl.png";
 gptImage.onload = function () {
 	gptReady = true;
+};
+
+var armImage_t_lng = new Image();
+var armReady_t_lng = false;
+armImage_t_lng.src =  "static/images/Arm_lbl_prv.png";
+armImage_t_lng.onload = function () {
+	armReady_t_lng = true;
 };
 
 
@@ -67,6 +77,9 @@ circImage.onload = function () {
 };
 
 
+ARM_X = 180
+ARM_Y = 850
+THRUST_0 = 0
 
 clicked = false;
 // Handle keyboard controls
@@ -120,28 +133,41 @@ var start = function (modifier){
 	}
 }
 
+var isGood = function (clicked,rot_table,grasper){
+
+	return rot_table == 0 && grasper == 0 && !clicked
+}
+
 var mouseToPos = function(){
 	//Translate to ARM Cordinate Frame
-	m_x = m_pose[0]+200
-	m_y = m_pose[1]-220
-	m_x_old = m_pose_old[0]+200
-	m_y_old = m_pose_old[1]-220
+	m_x = m_pose[0]-ARM_X
+	m_y = m_pose[1]-ARM_Y
+	m_x_old = m_pose_old[0]-ARM_X
+	m_y_old = m_pose_old[1]-ARM_Y
 
 
 	v_x = m_x - m_x_old
 	v_y = m_y - m_y_old
 
-	m_l2 = Math.sqrt(Math.pow(m_x,2)+Math.pow(m_y,2))
-	m_old_l2 =  Math.sqrt(Math.pow(m_x_old,2)+Math.pow(m_y_old,2))
+	m_l2 = Math.sqrt((Math.pow(m_y,2)))
+	m_old_l2 =  Math.sqrt((Math.pow(m_y_old,2)))
 	sign = Math.sign(m_l2 - m_old_l2)
-
 	//Get Magnitude 
-	l2 = Math.sqrt(Math.pow(v_x,2)+Math.pow(v_y,2))
-	console.log(l2)
-	izzy.thrust_d += sign*l2
+	l2 = Math.sqrt((Math.pow(v_y,2)))
+
+	
+	izzy.thrust_d += -sign*l2
+
+	if(Math.abs(izzy.thrust_d) > 30){
+		izzy.thrust_d = Math.sign(izzy.thrust_d)*30
+	}
 
 	//Get Anlge 
-	izzy.theta_d += (m_y-m_y_old)*0.005
+	izzy.theta_d += (m_x-m_x_old)*0.005
+
+	if(Math.abs(izzy.theta_d) > 0.15){
+		izzy.theta_d = Math.sign(izzy.theta_d)*0.15
+	}
 	m_pose_old = m_pose
 
 }
@@ -156,11 +182,18 @@ var dynamics = function(angle,thrust,rot_table,grasper){
 	if(clicked){
 		mouseToPos()
 	}
+	armImage = armImage_t_lng
+	if(isGood(clicked,rot_table,grasper)){
+		armImage = armImage_t
+		izzy.theta_d = 0
+		izzy.thrust_d = 0
+		izzy.grasp_d = 0
+		izzy.table_angle_d = 0
+	}
 
-	console.log("STATE "+current_state)
-	izzy.thrust = current_state[1]*1000+izzy.thrust_d
+	izzy.thrust = THRUST_0 - current_state[1]*700+izzy.thrust_d
 	izzy.table_angle = current_state[3]+izzy.table_angle_d
-	izzy.theta = -current_state[0]+Math.PI+Math.PI/7+izzy.theta_d
+	izzy.theta = -current_state[0]*0.99+Math.PI/2+izzy.theta_d+Math.PI/8
 	izzy.grasp = current_state[2]*1000+izzy.grasp_d
 
 	label[0] = izzy.theta_d
@@ -168,11 +201,9 @@ var dynamics = function(angle,thrust,rot_table,grasper){
 	label[2] = izzy.grasp_d
 	label[3] = izzy.table_angle_d
 	
-	izzy.arm_x = izzy.thrust*Math.cos(izzy.theta)
-	izzy.arm_y = izzy.thrust*Math.sin(izzy.theta)
 
-	
-
+	izzy.arm_x = Math.abs(izzy.thrust*Math.sin(izzy.theta))
+	izzy.arm_y = Math.abs(izzy.thrust*Math.cos(izzy.theta))
 }
 
 // Update game objects
@@ -181,6 +212,7 @@ var update = function (modifier) {
 	rot_table = 0
 	thrust = 0
 	grasper = 0
+	end = false
 	
 	bgImage.src = 'http://0.0.0.0:5000/video_feed'
 	feedback = []
@@ -214,10 +246,18 @@ var update = function (modifier) {
 			    current_state = response.items
 			    video_id = response.id
 			    img_idx = response.idx
+			    end = response.end 
 			    for(i = 0; i<4; i++){
 			    	current_state[i] = parseFloat(current_state[i])
+			    	console.log(i+" "+current_state[i])
 			    	
 			    }
+			    if(end){
+					complete()
+				}
+						   // if(response.end){
+			   // 	console.log("END "+response.end)
+			   // }
 		}
     });
 
@@ -234,6 +274,8 @@ var update = function (modifier) {
 	if(83 in keysDown){ // Player holding s
 		grasper = -1
 	}
+
+	
 
 	dynamics(angle,thrust,rot_table,grasper)
 
@@ -253,7 +295,7 @@ function drawRotatedImage(image, x, y, angle) {
  
 	// rotate around that point, converting our 
 	// angle from degrees to radians 
-	ctx.rotate(angle) //* TO_RADIANS);
+	ctx.rotate(angle)//* TO_RADIANS);
  
 	// draw it up and to the left by half the width
 	// and height of the image 
@@ -267,27 +309,21 @@ function drawArm(image, x, y, angle) {
  
 	// save the current co-ordinate system 
 	// before we screw with it
-	ctx.save(); 
-	ctx.translate(-200,220)
-	// rotate around that point, converting our 
-	// angle from degrees to radians 
-	ctx.rotate(angle) //* TO_RADIANS);
- 
-	// move to the middle of where we want to draw our image
-	ctx.translate(x, y);
- 
- 
+	 ctx.save(); 
+	 ctx.translate(ARM_X,ARM_Y)
+	 ctx.rotate(angle)
+	 ctx.translate(x,y)
+	
 	// draw it up and to the left by half the width
 	// and height of the image 
-	ctx.drawImage(image, -(image.width/2), -(image.height/2));
-
+	ctx.drawImage(image,0, 0);
 
 	if (gptReady){
-		ctx.drawImage(gptImage,230,-220-izzy.grasp);
+		ctx.drawImage(gptImage,450,-178-izzy.grasp);
 	}
 
 	if (gpdReady){
-		ctx.drawImage(gpdImage,230,-220+izzy.grasp);
+		ctx.drawImage(gpdImage,450,-178+izzy.grasp);
 	}
  
 	// and restore the co-ords to how they were when we began
@@ -299,7 +335,7 @@ fdbback = 0;
 var render = function () {
 
 	if (bgReady) {
-		ctx.drawImage(bgImage, 0, 0);
+		drawRotatedImage(bgImage,210,210,-Math.PI/2);
 	}
 	if (circReady){
 		drawRotatedImage(circImage,210,210,izzy.table_angle);
@@ -308,21 +344,23 @@ var render = function () {
 	if (armReady){
 		drawArm(armImage,izzy.arm_x,izzy.arm_y,izzy.theta);
 	}
-
-
 };
 
+var complete = function() {
+	running = false
+	document.getElementById('next').style.visibility = 'visible'
+}
+
 t = 0
+running = true
 // The main game loop
 var main = function () {
-
 	// Request to do this again ASAP
-	requestAnimationFrame(main);
-	update()
-	render()
-	console.log("RATE "+t)
-	t += 1
-
+	if(running){
+		requestAnimationFrame(main);
+		update()
+		render()
+	}
 
 };
 
