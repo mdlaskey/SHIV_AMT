@@ -156,6 +156,13 @@ var izzy = {
 
 var dynamics = function(angle,thrust,rot_table,grasper){
 	izzy.table_angle += rot_table
+
+	if(izzy.table_angle > 2*Math.PI){
+		izzy.table_angle = 0
+	}
+
+
+
 	izzy.theta += angle
 
 
@@ -314,7 +321,8 @@ var checkPoints = function(){
 		if (circReady_t){
 			drawRotatedImage(circImage_t,250,225,1.0);
 		}
-		if(Math.abs(izzy.table_angle - 1.0)<0.01){
+		console.log("TABLE VALUE ", izzy.table_angle)
+		if(Math.abs(izzy.table_angle - 1.0)<0.01 || Math.abs(izzy.table_angle - -2.2)<0.01){
 			r+=1
 			document.getElementById('TABLE').style.visibility = 'hidden'
 		}

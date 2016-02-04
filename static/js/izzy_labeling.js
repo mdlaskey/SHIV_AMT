@@ -71,15 +71,33 @@ gpdImage.onload = function () {
 // Circular image
 var circReady = false;
 var circImage = new Image();
-circImage.src =  "static/images/RotTable_lbl.png";
-circImage.onload = function () {
+var circImage_st = new Image();
+circImage_st.src =  "static/images/RotTable_lbl.png";
+circImage_st.onload = function () {
 	circReady = true;
 };
 
+var circImage_prv = new Image();
+circImage_prv.src =  "static/images/RotTable_lbl_prv.png";
+circImage_prv.onload = function () {
+	circReady_prv = true;
+};
 
-ARM_X = 180
-ARM_Y = 850
+
+
+
+var metersToPixels = function(val_m){
+	return 0.85*420/0.5461*val_m
+}
+
+//Parameters 
+ARM_X = 210
+ARM_Y = 580
 THRUST_0 = 0
+THRUST_LIMITS = metersToPixels(0.05)
+GRASP_LIMITS = metersToPixels(0.02)
+// ROT_LIMITS
+
 
 clicked = false;
 // Handle keyboard controls
@@ -158,8 +176,8 @@ var mouseToPos = function(){
 	
 	izzy.thrust_d += -sign*l2
 
-	if(Math.abs(izzy.thrust_d) > 30){
-		izzy.thrust_d = Math.sign(izzy.thrust_d)*30
+	if(Math.abs(izzy.thrust_d) > THRUST_LIMITS){
+		izzy.thrust_d = Math.sign(izzy.thrust_d)*THRUST_LIMITS
 	}
 
 	//Get Anlge 
@@ -172,29 +190,53 @@ var mouseToPos = function(){
 
 }
 
+
+
+
 var dynamics = function(angle,thrust,rot_table,grasper){
 	//izzy.table_angle += rot_table
 	//izzy.theta += angle
 
 	izzy.grasp_d += grasper
-	izzy.rot_table_d += rot_table
+
+	if(Math.abs(izzy.grasp_d) > GRASP_LIMITS){
+		izzy.grasp_d = Math.sign(izzy.grasp_d)*GRASP_LIMITS
+	}
+
+	izzy.table_angle_d += rot_table
+
+	if(Math.abs(izzy.table_angle_d) > 0.15){
+		izzy.table_angle_d = Math.sign(izzy.table_angle_d)*0.15
+	}
 	
 	if(clicked){
 		mouseToPos()
 	}
 	armImage = armImage_t_lng
+	armReady = true
 	if(isGood(clicked,rot_table,grasper)){
-		armImage = armImage_t
+		armReady = false
 		izzy.theta_d = 0
 		izzy.thrust_d = 0
 		izzy.grasp_d = 0
 		izzy.table_angle_d = 0
 	}
+	circImage = circImage_st
 
-	izzy.thrust = THRUST_0 - current_state[1]*700+izzy.thrust_d
+	if(!clicked && rot_table != 0){
+		armReady = false
+		circImage = circImage_prv
+	}
+
+
+	//Convert meters to pixels
+	s_thrust = metersToPixels(current_state[1])
+	s_grasp = metersToPixels(current_state[2])*1.5
+
+	izzy.thrust = THRUST_0 - s_thrust+izzy.thrust_d
 	izzy.table_angle = current_state[3]+izzy.table_angle_d
-	izzy.theta = -current_state[0]*0.99+Math.PI/2+izzy.theta_d+Math.PI/8
-	izzy.grasp = current_state[2]*1000+izzy.grasp_d
+	izzy.theta = -current_state[0]+Math.PI/2+izzy.theta_d+Math.PI/8
+	izzy.grasp = s_grasp+izzy.grasp_d
 
 	label[0] = izzy.theta_d
 	label[1] = izzy.thrust_d/1000
@@ -202,8 +244,8 @@ var dynamics = function(angle,thrust,rot_table,grasper){
 	label[3] = izzy.table_angle_d
 	
 
-	izzy.arm_x = Math.abs(izzy.thrust*Math.sin(izzy.theta))
-	izzy.arm_y = Math.abs(izzy.thrust*Math.cos(izzy.theta))
+	izzy.arm_x = Math.abs(izzy.thrust)
+	izzy.arm_y = 0 
 }
 
 // Update game objects
@@ -255,7 +297,7 @@ var update = function (modifier) {
 			    if(end){
 					complete()
 				}
-						   // if(response.end){
+				// if(response.end){
 			   // 	console.log("END "+response.end)
 			   // }
 		}
@@ -274,8 +316,6 @@ var update = function (modifier) {
 	if(83 in keysDown){ // Player holding s
 		grasper = -1
 	}
-
-	
 
 	dynamics(angle,thrust,rot_table,grasper)
 
@@ -316,14 +356,14 @@ function drawArm(image, x, y, angle) {
 	
 	// draw it up and to the left by half the width
 	// and height of the image 
-	ctx.drawImage(image,0, 0);
+	ctx.drawImage(image,-240, -30);
 
 	if (gptReady){
-		ctx.drawImage(gptImage,450,-178-izzy.grasp);
+		ctx.drawImage(gptImage,210,-208-izzy.grasp);
 	}
 
 	if (gpdReady){
-		ctx.drawImage(gpdImage,450,-178+izzy.grasp);
+		ctx.drawImage(gpdImage,210,-208+izzy.grasp);
 	}
  
 	// and restore the co-ords to how they were when we began

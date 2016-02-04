@@ -11,11 +11,14 @@ class Camera(object):
         self.frames = []
         self.states = []
         self.img_name = []
-        self.file_lbl = open('rollout5/labels.txt','w')
-        file_str = open('rollout5/states.txt','r')
-        for i in range(100):
-            self.frames.append(open("rollout5/rollout5_frame_"+str(i)+".jpg",'rb').read())
-            self.img_name.append("rollout5/rollout5_frame_"+str(i)+".jpg")
+        self.index = -1
+        self.first = True
+        self.srt_time = 0
+        self.file_lbl = open('rollout7/labels.txt','w')
+        file_str = open('rollout7/states.txt','r')
+        for i in range(0,150):
+            self.frames.append(open("rollout7/rollout7_frame_"+str(i)+".jpg",'rb').read())
+            self.img_name.append("rollout7/rollout7_frame_"+str(i)+".jpg")
             line = file_str.readline()
             line = line.split()
             state = line[1:5]
@@ -23,12 +26,21 @@ class Camera(object):
             self.states.append(state)
 
     def get_frame(self):
-        # return self.frames[5]
-        return self.frames[int(time()) % 100]
+        # return self.frames[95]
+
+        if(self.first):
+            self.first = False
+            self.srt_time = int(time())
+
+        self.index = int(time())-self.srt_time
+
+        return self.frames[self.index]
+
 
     def get_state(self):
-        # return self.states[5],5
-        return self.states[int(time()) % 100], int(time()) % 100
+        # return self.states[95],95
+ 
+        return self.states[self.index], self.index
 
     def stringToArray(self,data):
         length = len(data)
@@ -55,7 +67,9 @@ class Camera(object):
 
     def end(self,idx):
         if(idx == len(self.img_name)-1):
+            self.first = True
             return True
+
         else: 
             return False
 

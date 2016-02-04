@@ -17,6 +17,7 @@ var pages = [
 	"instructions/instruct-1.html",
 	"instructions/instruct-2.html",
 	"instructions/instruct-3.html",
+	"instructions/instruct-4.html",
 	"izzy_sim.html",
 	"video_stream.html",
 	"postquestionnaire.html"
@@ -26,10 +27,11 @@ psiTurk.preloadPages(pages);
 
 
 var instructionPages = [ // add as a list as many pages as you like
-	// "instructions/instruct-1.html",
-	// "instructions/instruct-2.html",
+	"instructions/instruct-1.html",
+	"instructions/instruct-2.html",
 	"izzy_sim.html",
 	"instructions/instruct-3.html",
+	"instructions/instruct-4.html",
 	"video_stream.html"
 	
 ];
