@@ -96,7 +96,9 @@ ARM_Y = 580
 THRUST_0 = 0
 THRUST_LIMITS = metersToPixels(0.05)
 GRASP_LIMITS = metersToPixels(0.02)
+first_g = 'true'
 // ROT_LIMITS
+addr = '0.0.0.0'
 
 
 clicked = false;
@@ -256,7 +258,7 @@ var update = function (modifier) {
 	grasper = 0
 	end = false
 	
-	bgImage.src = 'http://0.0.0.0:5000/video_feed'
+	
 	feedback = []
 	feedback.push({
 		key: "key",
@@ -278,8 +280,14 @@ var update = function (modifier) {
 		key: "idx",
 		value: img_idx
 	})
+	feedback.push({
+		key: "idx",
+		value: first_g
+	})
 	
-	$.ajax('http://0.0.0.0:5000/state_feed', {
+
+
+	$.ajax('http://'+addr+':5000/state_feed', {
                 type: "GET",
                 data: feedback,
                 // Work with the response
@@ -289,6 +297,7 @@ var update = function (modifier) {
 			    video_id = response.id
 			    img_idx = response.idx
 			    end = response.end 
+			  
 			    for(i = 0; i<4; i++){
 			    	current_state[i] = parseFloat(current_state[i])
 			    	console.log(i+" "+current_state[i])
@@ -297,11 +306,15 @@ var update = function (modifier) {
 			    if(end){
 					complete()
 				}
+				
+
 				// if(response.end){
 			   // 	console.log("END "+response.end)
 			   // }
 		}
     });
+    first_g = 'false'
+    bgImage.src = 'http://'+addr+':5000/video_feed/'+workerID
 
 	if(65 in keysDown){ //Player holding a
 		rot_table = -0.1
