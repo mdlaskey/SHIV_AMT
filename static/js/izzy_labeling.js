@@ -91,8 +91,8 @@ var metersToPixels = function(val_m){
 }
 
 //Parameters 
-ARM_X = 210
-ARM_Y = 580
+ARM_X = 190
+ARM_Y = 620
 THRUST_0 = 0
 THRUST_LIMITS = metersToPixels(0.05)
 GRASP_LIMITS = metersToPixels(0.02)
@@ -224,16 +224,18 @@ var dynamics = function(angle,thrust,rot_table,grasper){
 		izzy.table_angle_d = 0
 	}
 	circImage = circImage_st
+	circReady = false
 
 	if(!clicked && rot_table != 0){
 		armReady = false
+		circReady = true
 		circImage = circImage_prv
 	}
 
 
 	//Convert meters to pixels
 	s_thrust = metersToPixels(current_state[1])
-	s_grasp = metersToPixels(current_state[2])*1.5
+	s_grasp = metersToPixels(current_state[2])*1.75
 
 	izzy.thrust = THRUST_0 - s_thrust+izzy.thrust_d
 	izzy.table_angle = current_state[3]+izzy.table_angle_d
@@ -317,10 +319,10 @@ var update = function (modifier) {
     bgImage.src = 'http://'+addr+':5000/video_feed/'+workerID
 
 	if(65 in keysDown){ //Player holding a
-		rot_table = -0.1
+		rot_table = -0.05
 	}
 	if(68 in keysDown){ //Player holding d
-		rot_table = 0.1
+		rot_table = 0.05
 	}
 
 	if(87 in keysDown){ // Player holding w
@@ -372,11 +374,11 @@ function drawArm(image, x, y, angle) {
 	ctx.drawImage(image,-240, -30);
 
 	if (gptReady){
-		ctx.drawImage(gptImage,210,-208-izzy.grasp);
+		ctx.drawImage(gptImage,240,-190-izzy.grasp);
 	}
 
 	if (gpdReady){
-		ctx.drawImage(gpdImage,210,-208+izzy.grasp);
+		ctx.drawImage(gpdImage,240,-190+izzy.grasp);
 	}
  
 	// and restore the co-ords to how they were when we began
@@ -388,7 +390,7 @@ fdbback = 0;
 var render = function () {
 
 	if (bgReady) {
-		drawRotatedImage(bgImage,210,210,-Math.PI/2);
+		drawRotatedImage(bgImage,210,210,Math.PI/2);
 	}
 	if (circReady){
 		drawRotatedImage(circImage,210,210,izzy.table_angle);

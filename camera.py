@@ -6,8 +6,8 @@ import numpy as np
 class Camera(object):
     """An emulated camera implementation that streams a repeated sequence of
     files 1.jpg, 2.jpg and 3.jpg at a rate of one frame per second."""
-    addr = ""
-    # addr = "/home/annal/Izzy/vision_amt/data/amt/rollouts/"
+    
+   
     def __init__(self,rollout= 'rollout5'):
         self.frames = []
         self.states = []
@@ -16,12 +16,15 @@ class Camera(object):
         self.first = True
         self.rollout = rollout
         self.srt_time = 0
+        addr = ""
+        # addr = "/home/annal/Izzy/vision_amt/data/amt/rollouts/"
 
-        self.file_lbl = open(rollout+'/labels.txt','w')
-        file_str = open(rollout+'/states.txt','r')
-        for i in range(0,10):
+        self.file_lbl = open(addr+rollout+'/labels.txt','w')
+        file_str = open(addr+rollout+'/states.txt','r')
+        for i in range(0,100):
             self.frames.append(open(addr+rollout+'/'+rollout+'_frame_'+str(i)+'.jpg','rb').read())
             self.img_name.append(addr+rollout+'/'+rollout+'_frame_'+str(i)+'.jpg')
+
             line = file_str.readline()
             line = line.split()
             state = line[1:5]
@@ -35,7 +38,7 @@ class Camera(object):
             self.first = False
             self.srt_time = int(time())
 
-        self.index = int(time())-self.srt_time
+        self.index = (int(time())-self.srt_time)+4
 
         return self.frames[self.index]
 
@@ -43,7 +46,7 @@ class Camera(object):
     def get_state(self):
         # return self.states[95],95
         print "ROLL OUT ",self.rollout
-        return self.states[self.index], self.index
+        return self.states[self.index-4], self.index
 
     def stringToArray(self,data):
         length = len(data)
@@ -69,7 +72,7 @@ class Camera(object):
         return "video"
 
     def end(self,idx):
-        if(idx == len(self.img_name)-1):
+        if(idx == len(self.img_name)-1-4):
             self.first = True
             return True
         else: 

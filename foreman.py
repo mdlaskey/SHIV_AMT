@@ -14,8 +14,10 @@ class Foreman(object):
 
     def compile_list(self):
         rollouts = []
-        for i in range(0,5):
-            rollouts.append("rollouts"+str(i))
+        rng = [53]
+        for i in rng:
+            print i
+            rollouts.append("rollout"+str(i))
         return rollouts
 
     def getWork(self,workerID):

@@ -29,9 +29,6 @@ from datetime import timedelta
 
 # # Database setup
 from psiturk.db import db_session, init_db
-from Classes.Supervisor import Supervisor 
-from Classes.RobotCont import RobotCont
-from Classes.RobotQ import RobotQ
 from psiturk.models import Participant
 from json import dumps, loads
 from cStringIO import StringIO
@@ -105,6 +102,7 @@ def gen(username):
 	while True:
 		camera = foreman.getWork(username)
 		frame = camera.get_frame()
+		
 		yield (b'--frame\r\n'
 		       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
@@ -148,6 +146,14 @@ def state_feed():
 		end = False
 
 	return jsonify(result={"status": 200}, items = state, id = camera.get_vid(),idx = idx,end=end)
+
+@custom_code.route('/save_data')
+@crossdomain(origin='*')
+def save_data():
+	"""Return states of current image."""
+	data = dict(request.args)
+
+	return jsonify(result={"status": 200})
 
 if __name__ == '__main__':
 	print "running"
