@@ -17,6 +17,7 @@ class Camera(object):
         self.rollout = rollout
         self.srt_time = 0
         addr = ""
+        self.base = time()
         # addr = "/home/annal/Izzy/vision_amt/data/amt/rollouts/"
 
         self.file_lbl = open(addr+rollout+'/labels.txt','w')
@@ -34,11 +35,15 @@ class Camera(object):
     def get_frame(self):
         # return self.frames[95]
 
-        if(self.first):
-            self.first = False
-            self.srt_time = int(time())
+        # if(self.first):
+        #     self.first = False
+        #     self.srt_time = int(time())
 
-        self.index = (int(time())-self.srt_time)+4
+        if(time() - self.base > 0.25 or self.first): 
+            self.index += 1
+            self.base = time()
+            self.first = False
+        
 
         return self.frames[self.index]
 
@@ -46,7 +51,7 @@ class Camera(object):
     def get_state(self):
         # return self.states[95],95
         print "ROLL OUT ",self.rollout
-        return self.states[self.index-4], self.index
+        return self.states[self.index], self.index
 
     def stringToArray(self,data):
         length = len(data)
@@ -70,6 +75,7 @@ class Camera(object):
 
     def get_vid(self):
         return "video"
+        
 
     def end(self,idx):
         if(idx == len(self.img_name)-1-4):

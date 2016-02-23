@@ -14,7 +14,7 @@ class Foreman(object):
 
     def compile_list(self):
         rollouts = []
-        rng = [53]
+        rng = [61]
         for i in rng:
             print i
             rollouts.append("rollout"+str(i))
