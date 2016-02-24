@@ -6,8 +6,8 @@ import numpy as np
 class Camera(object):
     """An emulated camera implementation that streams a repeated sequence of
     files 1.jpg, 2.jpg and 3.jpg at a rate of one frame per second."""
-    addr = ""
-    # addr = "/home/annal/Izzy/vision_amt/data/amt/rollouts/"
+    #addr = ""
+    
     def __init__(self,rollout= 'rollout5'):
         self.frames = []
         self.states = []
@@ -16,10 +16,11 @@ class Camera(object):
         self.first = True
         self.rollout = rollout
         self.srt_time = 0
-
-        self.file_lbl = open(rollout+'/labels.txt','w')
-        file_str = open(rollout+'/states.txt','r')
-        for i in range(0,10):
+        addr = "/home/annal/Izzy/vision_amt/data/amt/rollouts/"
+       
+        self.file_lbl = open(addr+rollout+'/labels.txt','w')
+        file_str = open(addr+rollout+'/states.txt','r')
+        for i in range(0,100):
             self.frames.append(open(addr+rollout+'/'+rollout+'_frame_'+str(i)+'.jpg','rb').read())
             self.img_name.append(addr+rollout+'/'+rollout+'_frame_'+str(i)+'.jpg')
             line = file_str.readline()
@@ -34,7 +35,7 @@ class Camera(object):
         if(self.first):
             self.first = False
             self.srt_time = int(time())
-
+        print time()
         self.index = int(time())-self.srt_time
 
         return self.frames[self.index]

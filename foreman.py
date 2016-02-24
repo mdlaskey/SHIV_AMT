@@ -15,21 +15,20 @@ class Foreman(object):
     def compile_list(self):
         rollouts = []
         for i in range(0,5):
-            rollouts.append("rollouts"+str(i))
+            rollouts.append("rollout"+str(i))
         return rollouts
 
     def getWork(self,workerID):
         return self.Workers[workerID]
 
     def assignWorker(self,workerID):
+  
         if(not workerID in self.Workers):
             rollout = self.rollouts.pop()
             self.Workers[workerID] = Camera(rollout)
             
         return
         
-
-
     def endFilm(self,workerID):
         camera = self.Workers[workerID]
 

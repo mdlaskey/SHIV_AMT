@@ -349,6 +349,17 @@ var render = function () {
 
 };
 
+var  sgn = function(val){
+	if(val > 0){
+		return 1
+	}
+	else if(val < 0){
+		return -1
+	}
+	else{
+		return 0
+	}
+}
 
 var mouseToPos = function(){
 	//Translate to ARM Cordinate Frame
@@ -363,7 +374,7 @@ var mouseToPos = function(){
 
 	m_l2 = Math.sqrt((Math.pow(m_y,2)))
 	m_old_l2 =  Math.sqrt((Math.pow(m_y_old,2)))
-	sign = Math.sign(m_l2 - m_old_l2)
+	sign = sgn(m_l2 - m_old_l2)
 	//Get Magnitude 
 	l2 = Math.sqrt((Math.pow(v_y,2)))
 

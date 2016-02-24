@@ -8,7 +8,7 @@ if(document.body != null){
 	document.getElementById('next').style.visibility = 'hidden'
 }
 
-
+addr = '128.32.37.232'
 
 var ctx = canvas.getContext("2d");
 canvas.width = 420;
@@ -98,7 +98,7 @@ THRUST_LIMITS = metersToPixels(0.05)
 GRASP_LIMITS = metersToPixels(0.02)
 first_g = 'true'
 // ROT_LIMITS
-addr = '0.0.0.0'
+
 
 
 clicked = false;
@@ -171,7 +171,7 @@ var mouseToPos = function(){
 
 	m_l2 = Math.sqrt((Math.pow(m_y,2)))
 	m_old_l2 =  Math.sqrt((Math.pow(m_y_old,2)))
-	sign = Math.sign(m_l2 - m_old_l2)
+	sign = sgn(m_l2 - m_old_l2)
 	//Get Magnitude 
 	l2 = Math.sqrt((Math.pow(v_y,2)))
 
@@ -179,14 +179,14 @@ var mouseToPos = function(){
 	izzy.thrust_d += -sign*l2
 
 	if(Math.abs(izzy.thrust_d) > THRUST_LIMITS){
-		izzy.thrust_d = Math.sign(izzy.thrust_d)*THRUST_LIMITS
+		izzy.thrust_d = sgn(izzy.thrust_d)*THRUST_LIMITS
 	}
 
 	//Get Anlge 
 	izzy.theta_d += (m_x-m_x_old)*0.005
 
 	if(Math.abs(izzy.theta_d) > 0.15){
-		izzy.theta_d = Math.sign(izzy.theta_d)*0.15
+		izzy.theta_d = sgn(izzy.theta_d)*0.15
 	}
 	m_pose_old = m_pose
 
@@ -202,13 +202,13 @@ var dynamics = function(angle,thrust,rot_table,grasper){
 	izzy.grasp_d += grasper
 
 	if(Math.abs(izzy.grasp_d) > GRASP_LIMITS){
-		izzy.grasp_d = Math.sign(izzy.grasp_d)*GRASP_LIMITS
+		izzy.grasp_d = sgn(izzy.grasp_d)*GRASP_LIMITS
 	}
 
 	izzy.table_angle_d += rot_table
 
 	if(Math.abs(izzy.table_angle_d) > 0.15){
-		izzy.table_angle_d = Math.sign(izzy.table_angle_d)*0.15
+		izzy.table_angle_d = sgn(izzy.table_angle_d)*0.15
 	}
 	
 	if(clicked){
@@ -388,7 +388,7 @@ fdbback = 0;
 var render = function () {
 
 	if (bgReady) {
-		drawRotatedImage(bgImage,210,210,-Math.PI/2);
+		drawRotatedImage(bgImage,210,210,Math.PI/2);
 	}
 	if (circReady){
 		drawRotatedImage(circImage,210,210,izzy.table_angle);
@@ -398,6 +398,18 @@ var render = function () {
 		drawArm(armImage,izzy.arm_x,izzy.arm_y,izzy.theta);
 	}
 };
+
+var  sgn = function(val){
+	if(val > 0){
+		return 1
+	}
+	else if(val < 0){
+		return -1
+	}
+	else{
+		return 0
+	}
+}
 
 var complete = function() {
 	running = false

@@ -29,12 +29,10 @@ from datetime import timedelta
 
 # # Database setup
 from psiturk.db import db_session, init_db
-from Classes.Supervisor import Supervisor 
-from Classes.RobotCont import RobotCont
-from Classes.RobotQ import RobotQ
 from psiturk.models import Participant
 from json import dumps, loads
 from cStringIO import StringIO
+import cv2
 # load the configuration options
 config = PsiturkConfig()
 config.load_config()
@@ -54,7 +52,7 @@ CumData = dict()
 Coaches = dict()
 camera = []
 
-foreman = Foreman()
+foreman = []
 
 #rc11 = pickle.load(open('/Users/michaelluskey/Documents/RL/LFD/AMT_Experiment/RoboCont.p'))
 
@@ -101,12 +99,14 @@ def crossdomain(origin=None, methods=None, headers=None,
 
 
 def gen(username):
-	"""Video streaming generator function."""
-	while True:
-		camera = foreman.getWork(username)
-		frame = camera.get_frame()
-		yield (b'--frame\r\n'
-		       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+    """Video streaming generator function."""
+    while True:
+        camera = foreman.getWork(username)
+        frame = camera.get_frame()
+        # cv2.imshow("camera",frame)
+        # cv2.waitKey(30)
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 
 @custom_code.route('/video_feed/<username>')
@@ -150,6 +150,7 @@ def state_feed():
 	return jsonify(result={"status": 200}, items = state, id = camera.get_vid(),idx = idx,end=end)
 
 if __name__ == '__main__':
-	print "running"
-
-	custom_code.run(host='0.0.0.0', threaded = True)
+    print "running"
+    foreman = Foreman()
+    
+    custom_code.run(host='0.0.0.0', threaded = True)
