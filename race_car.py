@@ -149,6 +149,14 @@ def state_feed():
 
 	return jsonify(result={"status": 200}, items = state, id = camera.get_vid(),idx = idx,end=end)
 
+@custom_code.route('/save_data')
+@crossdomain(origin='*')
+def save_data():
+	"""Return states of current image."""
+	data = dict(request.args)
+
+	return jsonify(result={"status": 200})
+
 if __name__ == '__main__':
     print "running"
     foreman = Foreman()
