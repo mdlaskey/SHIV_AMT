@@ -8,7 +8,7 @@ if(document.body != null){
 	document.getElementById('next').style.visibility = 'hidden'
 }
 
-
+addr = '128.32.37.232'
 
 var ctx = canvas.getContext("2d");
 canvas.width = 420;
@@ -87,18 +87,18 @@ circImage_prv.onload = function () {
 
 
 var metersToPixels = function(val_m){
-	return 0.85*420/0.5461*val_m
+	return 1.0*420/0.5461*val_m
 }
 
 //Parameters 
 ARM_X = 190
-ARM_Y = 620
+ARM_Y = 590
 THRUST_0 = 0
 THRUST_LIMITS = metersToPixels(0.05)
 GRASP_LIMITS = metersToPixels(0.02)
 first_g = 'true'
 // ROT_LIMITS
-addr = '0.0.0.0'
+
 
 
 clicked = false;
@@ -171,7 +171,7 @@ var mouseToPos = function(){
 
 	m_l2 = Math.sqrt((Math.pow(m_y,2)))
 	m_old_l2 =  Math.sqrt((Math.pow(m_y_old,2)))
-	sign = Math.sign(m_l2 - m_old_l2)
+	sign = sgn(m_l2 - m_old_l2)
 	//Get Magnitude 
 	l2 = Math.sqrt((Math.pow(v_y,2)))
 
@@ -179,14 +179,14 @@ var mouseToPos = function(){
 	izzy.thrust_d += -sign*l2
 
 	if(Math.abs(izzy.thrust_d) > THRUST_LIMITS){
-		izzy.thrust_d = Math.sign(izzy.thrust_d)*THRUST_LIMITS
+		izzy.thrust_d = sgn(izzy.thrust_d)*THRUST_LIMITS
 	}
 
-	//Get Anlge 
+	//Get Angle
 	izzy.theta_d += (m_x-m_x_old)*0.005
 
-	if(Math.abs(izzy.theta_d) > 0.15){
-		izzy.theta_d = Math.sign(izzy.theta_d)*0.15
+	if(Math.abs(izzy.theta_d) > 0.2){
+		izzy.theta_d = sgn(izzy.theta_d)*0.2
 	}
 	m_pose_old = m_pose
 
@@ -202,13 +202,13 @@ var dynamics = function(angle,thrust,rot_table,grasper){
 	izzy.grasp_d += grasper
 
 	if(Math.abs(izzy.grasp_d) > GRASP_LIMITS){
-		izzy.grasp_d = Math.sign(izzy.grasp_d)*GRASP_LIMITS
+		izzy.grasp_d = sgn(izzy.grasp_d)*GRASP_LIMITS
 	}
 
 	izzy.table_angle_d += rot_table
 
 	if(Math.abs(izzy.table_angle_d) > 0.15){
-		izzy.table_angle_d = Math.sign(izzy.table_angle_d)*0.15
+		izzy.table_angle_d = sgn(izzy.table_angle_d)*0.15
 	}
 	
 	if(clicked){
@@ -232,18 +232,24 @@ var dynamics = function(angle,thrust,rot_table,grasper){
 		circImage = circImage_prv
 	}
 
+	//Handle Gripper Negative Problem 
+	if(current_state[2] < 0.0){
+		current_state[2] = 0.04+current_state[2]*-1
+	}
+
 
 	//Convert meters to pixels
 	s_thrust = metersToPixels(current_state[1])
-	s_grasp = metersToPixels(current_state[2])*1.75
+	s_grasp = metersToPixels(current_state[2])//*1.75
+
 
 	izzy.thrust = THRUST_0 - s_thrust+izzy.thrust_d
 	izzy.table_angle = current_state[3]+izzy.table_angle_d
-	izzy.theta = -current_state[0]+Math.PI/2+izzy.theta_d+Math.PI/8
+	izzy.theta = -current_state[0]+Math.PI/2+izzy.theta_d+Math.PI/10
 	izzy.grasp = s_grasp+izzy.grasp_d
 
-	label[0] = izzy.theta_d
-	label[1] = izzy.thrust_d/1000
+	label[0] = -izzy.theta_d
+	label[1] = -izzy.thrust_d/1000
 	label[2] = izzy.grasp_d
 	label[3] = izzy.table_angle_d
 	
@@ -400,6 +406,18 @@ var render = function () {
 		drawArm(armImage,izzy.arm_x,izzy.arm_y,izzy.theta);
 	}
 };
+
+var  sgn = function(val){
+	if(val > 0){
+		return 1
+	}
+	else if(val < 0){
+		return -1
+	}
+	else{
+		return 0
+	}
+}
 
 var complete = function() {
 	running = false
