@@ -16,12 +16,14 @@ class Camera(object):
         self.rollout = rollout
         self.srt_time = 0
         self.pre_i = -2
+        self.pre_label = True
 
-        addr = "/home/annal/Izzy/vision_amt/data/amt/rollouts/"
-        addr_lbl = "/home/annal/Izzy/vision_amt/data/amt/"
+        # addr = "/home/annal/Izzy/vision_amt/data/amt/rollouts/"
+        # addr_lbl = "/home/annal/Izzy/vision_amt/data/amt/"
 
         self.base = time()
-        # addr = "/home/annal/Izzy/vision_amt/data/amt/rollouts/"
+        addr = ""
+
 
         self.file_lbl = file_path 
         file_str = open(addr+rollout+'/states.txt','r')
@@ -38,7 +40,7 @@ class Camera(object):
     def get_frame(self):
         # return self.frames[95]
 
-        if(time() - self.base > 0.4 or self.first): 
+        if(time() - self.base > 0.1 or self.first): 
             self.index += 1
             self.base = time()
             self.first = False
@@ -46,6 +48,16 @@ class Camera(object):
                 self.index = 79
         return self.frames[self.index]
 
+    def get_pre_frame(self):
+        # return self.frames[95]
+
+        if(time() - self.base > 0.05 or self.first): 
+            self.index += 1
+            self.base = time()
+            self.first = False
+            if(self.index > 79):
+                self.index = 79
+        return self.frames[self.index]
 
     def get_state(self):
         # return self.states[95],95
@@ -86,6 +98,7 @@ class Camera(object):
         deltas[2] = np.sign(deltas[2])*np.min([0.005,np.abs(deltas[2])])
         deltas[3] = np.sign(deltas[3])*np.min([0.2,np.abs(deltas[3])])
         return deltas 
+
     def checkLabel(self,deltas,idx):
         sm = 0.0
         print "i ",idx
@@ -98,14 +111,19 @@ class Camera(object):
         else:
             self.pre_i = idx
             return True
+
     def get_vid(self):
         return "video"
+        
+    def pre_f(self):
+        return self.pre_label
         
 
     def end(self,idx):
         if(idx == len(self.img_name)-1):
             self.first = True
             self.index = -1
+            self.pre_label = False
             return True
         else: 
             return False

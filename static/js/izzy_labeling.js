@@ -6,9 +6,12 @@ var canvas = document.getElementById("canvas");
 
 if(document.body != null){  
 	document.getElementById('next').style.visibility = 'hidden'
+	document.getElementById('yes').style.visibility = 'hidden'
+	document.getElementById('no').style.visibility = 'hidden'
 }
 
-addr = '128.32.37.232'
+// addr = '128.32.37.232'
+addr = '0.0.0.0'
 
 var ctx = canvas.getContext("2d");
 canvas.width = 420;
@@ -89,7 +92,7 @@ circImage_prv.onload = function () {
 var metersToPixels = function(val_m){
 	return 1.0*420/0.5461*val_m
 }
-
+new_frame = 'true'
 //Parameters 
 ARM_X = 190
 ARM_Y = 590
@@ -292,8 +295,12 @@ var update = function (modifier) {
 		key: "idx",
 		value: first_g
 	})
+	feedback.push({
+		key: "idx",
+		value: new_frame
+	})
 	
-
+	new_frame = 'false'
 
 	$.ajax('http://'+addr+':5000/state_feed', {
                 type: "GET",
@@ -302,16 +309,21 @@ var update = function (modifier) {
 				success: function( response ) {
 			     // server response
 			    current_state = response.items
-			    video_id = response.id
 			    img_idx = response.idx
+			    video_id = response.id
 			    end = response.end 
-			  
+			  	q = response.query
+
 			    for(i = 0; i<4; i++){
 			    	current_state[i] = parseFloat(current_state[i])
 			    	console.log(i+" "+current_state[i])
 			    	
 			    }
+			    if(q){
+			    	query()
+			    }
 			    if(end){
+
 					complete()
 				}
 				
@@ -423,6 +435,31 @@ var complete = function() {
 	running = false
 	document.getElementById('next').style.visibility = 'visible'
 }
+var query_n = function(){
+
+	document.getElementById('yes').style.visibility = 'hidden'
+	document.getElementById('no').style.visibility = 'hidden'
+	complete()
+};
+
+var query_y = function(){
+
+	document.getElementById('yes').style.visibility = 'hidden'
+	document.getElementById('no').style.visibility = 'hidden'
+	running = true
+	new_frame = 'true'
+};
+document.getElementById("yes").onclick = query_y;
+document.getElementById("no").onclick = query_n;
+
+
+
+var query = function() {
+	running = false
+	document.getElementById('yes').style.visibility = 'visible'
+	document.getElementById('no').style.visibility = 'visible'
+	
+}
 
 t = 0
 running = true
@@ -433,6 +470,9 @@ var main = function () {
 		requestAnimationFrame(main);
 		update()
 		render()
+	}
+	else{
+		requestAnimationFrame(main);
 	}
 
 };

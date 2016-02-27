@@ -411,7 +411,7 @@ var main = function () {
 		step += 1
 	}
 
-	if(r>2){
+	if(r>1){
 		complete()
 	}
 

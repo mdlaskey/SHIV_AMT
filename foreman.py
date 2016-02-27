@@ -9,9 +9,10 @@ class Foreman(object):
         self.Workers = dict()
         self.rollouts = self.compile_list()
         # Camera(self.rollouts[0])
-        addr_lbl = "/home/annal/Izzy/vision_amt/data/amt/"
+        #addr_lbl = "/home/annal/Izzy/vision_amt/data/amt/"
+        addr_lbl = ""
 
-        self.file_lbl = open(addr_lbl+'/labels_amt_exp_91_99.txt','w')
+        self.file_lbl = open(addr_lbl+'labels_test.txt','w')
         self.num_rl = len(self.rollouts)
         self.cmpl_rl = []
         self.idx = 0
@@ -21,7 +22,7 @@ class Foreman(object):
         rollouts = []
         rng = []
       
-        for i in range(91,100):
+        for i in range(65,68):
             rng.append(i)
             print i
             rollouts.append("rollout"+str(i))
@@ -57,7 +58,6 @@ class Foreman(object):
             self.idx+=1
             rollout = self.rollouts[self.idx]
             
-
             self.Workers[workerID] = Camera(rollout,file_path = self.file_lbl)
             return False
 

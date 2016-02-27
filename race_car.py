@@ -53,7 +53,7 @@ Coaches = dict()
 camera = []
 
 foreman = []
-
+global lock 
 #rc11 = pickle.load(open('/Users/michaelluskey/Documents/RL/LFD/AMT_Experiment/RoboCont.p'))
 
 def crossdomain(origin=None, methods=None, headers=None,
@@ -102,11 +102,15 @@ def gen(username):
     """Video streaming generator function."""
     while True:
         camera = foreman.getWork(username)
-        frame = camera.get_frame()
-        # cv2.imshow("camera",frame)
-        # cv2.waitKey(30)
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        if( not lock):
+            if(camera.pre_f()):
+                frame = camera.get_pre_frame()
+            else:
+                frame = camera.get_frame()
+            # cv2.imshow("camera",frame)
+            # cv2.waitKey(30)
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 
 @custom_code.route('/video_feed/<username>')
@@ -120,34 +124,53 @@ def video_feed(username):
 @custom_code.route('/state_feed')
 @crossdomain(origin='*')
 def state_feed():
-	"""Return states of current image."""
-	data = dict(request.args)
+    """Return states of current image."""
+    data = dict(request.args)
+    global lock
 
-	wID = data['undefined'][0]
-	video_id = data['undefined'][1]
-	state = data['undefined'][2].split()
-	label =  data['undefined'][3].split()
-	first = data['undefined'][5] == 'true'
+    wID = data['undefined'][0]
+    video_id = data['undefined'][1]
+    state = data['undefined'][2].split()
+    label =  data['undefined'][3].split()
+    first = data['undefined'][5] == 'true'
+    n_cam = data['undefined'][6] == 'true'
 
-	idx =  int(data['undefined'][4])
+    idx =  int(data['undefined'][4])
+
+    if(n_cam):
+        lock = False
+
+    if(not lock):
+        foreman.assignWorker(wID)
+
+        camera = foreman.getWork(wID)
+
+        if(video_id == 'not_init' or camera.pre_f()):
+            [state,idx] = camera.get_state()
+        else:
+            [state,idx] = camera.get_state()
+            camera.writeImage(label,idx)
 
 
-	foreman.assignWorker(wID)
+        end_n = False
+        query = False
+        if(not camera.pre_f()):
+            if(camera.end(idx)):
+                lock = True
+                end_n = foreman.endFilm(wID)
+                
+                if(not end_n):
+                    query = True
+        else: 
+            camera.end(idx)
 
-	camera = foreman.getWork(wID)
+        return jsonify(result={"status": 200}, items = state,idx = idx, id = camera.get_vid(),end = end_n, query = query)
+    
 
-	if(video_id == 'not_init'):
-		[state,idx] = camera.get_state()
-	else:
-		[state,idx] = camera.get_state()
-		camera.writeImage(label,idx)
+    # if(idx > 20):
+    #     IPython.embed()
 
-	if(camera.end(idx)):
-		end = foreman.endFilm(wID)
-	else: 
-		end = False
-
-	return jsonify(result={"status": 200}, items = state, id = camera.get_vid(),idx = idx,end=end)
+    
 
 @custom_code.route('/save_data')
 @crossdomain(origin='*')
@@ -160,5 +183,6 @@ def save_data():
 if __name__ == '__main__':
     print "running"
     foreman = Foreman()
+    lock = False
     
     custom_code.run(host='0.0.0.0', threaded = True)
