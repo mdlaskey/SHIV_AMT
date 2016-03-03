@@ -17,12 +17,14 @@ class Camera(object):
         self.srt_time = 0
         self.pre_i = -2
         self.pre_label = True
+        self.labels = []
+        #self.pre_label = False
 
         # addr = "/home/annal/Izzy/vision_amt/data/amt/rollouts/"
         # addr_lbl = "/home/annal/Izzy/vision_amt/data/amt/"
 
         self.base = time()
-        addr = ""
+        addr = "rollouts/"
 
 
         self.file_lbl = file_path 
@@ -40,7 +42,7 @@ class Camera(object):
     def get_frame(self):
         # return self.frames[95]
 
-        if(time() - self.base > 0.1 or self.first): 
+        if(time() - self.base > 0.05 or self.first): 
             self.index += 1
             self.base = time()
             self.first = False
@@ -136,5 +138,6 @@ class Camera(object):
             if(self.checkLabel(label,i)):
                 img_n = self.getImage(i)
                 line = img_n+" "+str(label[0])+" "+str(label[1])+" "+str(label[2])+" "+str(label[3])+"\n"
+                self.labels.append((img_n,label))
                 self.file_lbl.write(line)
         

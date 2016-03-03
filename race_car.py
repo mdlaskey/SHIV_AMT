@@ -102,7 +102,7 @@ def gen(username):
     """Video streaming generator function."""
     while True:
         camera = foreman.getWork(username)
-        if( not lock):
+        if( not foreman.getLock(username)):
             if(camera.pre_f()):
                 frame = camera.get_pre_frame()
             else:
@@ -138,7 +138,7 @@ def state_feed():
     idx =  int(data['undefined'][4])
 
     if(n_cam):
-        lock = False
+        foreman.setLock(wID,False)
 
     if(not lock):
         foreman.assignWorker(wID)
@@ -156,11 +156,13 @@ def state_feed():
         query = False
         if(not camera.pre_f()):
             if(camera.end(idx)):
-                lock = True
+                foreman.setLock(wID,True)
                 end_n = foreman.endFilm(wID)
+             
                 
                 if(not end_n):
                     query = True
+                    #query = False
         else: 
             camera.end(idx)
 
@@ -175,10 +177,12 @@ def state_feed():
 @custom_code.route('/save_data')
 @crossdomain(origin='*')
 def save_data():
-	"""Return states of current image."""
-	data = dict(request.args)
+    """Return states of current image."""
+    data = dict(request.args)
+    wID = data['undefined'][0]
+    foreman.saveWork(wID)
 
-	return jsonify(result={"status": 200})
+    return jsonify(result={"status": 200})
 
 if __name__ == '__main__':
     print "running"

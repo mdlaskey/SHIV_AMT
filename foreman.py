@@ -2,17 +2,20 @@ from time import time
 import IPython
 import numpy as np
 from camera import Camera
+from QCheck import QCheck
 
 
 class Foreman(object):
     def __init__(self,video= ''):
         self.Workers = dict()
+        self.Locks = dict()
+        self.Files = dict()
         self.rollouts = self.compile_list()
         # Camera(self.rollouts[0])
         #addr_lbl = "/home/annal/Izzy/vision_amt/data/amt/"
-        addr_lbl = ""
+        self.addr_lbl = ""
+        self.qCheck = QCheck()
 
-        self.file_lbl = open(addr_lbl+'labels_test.txt','w')
         self.num_rl = len(self.rollouts)
         self.cmpl_rl = []
         self.idx = 0
@@ -22,43 +25,61 @@ class Foreman(object):
         rollouts = []
         rng = []
       
-        for i in range(65,68):
+        for i in range(145,150):
             rng.append(i)
-            print i
             rollouts.append("rollout"+str(i))
         return rollouts
 
     def getWork(self,workerID):
         return self.Workers[workerID]
 
+    def setLock(self,wID,v):
+        self.Locks[wID] = v
+
+    def getLock(self,workerID):
+        if(not workerID in self.Locks):
+            self.Locks[workerID] = False
+        return self.Locks[workerID]
+
+
     def assignWorker(self,workerID):
   
         if(not workerID in self.Workers):
             rollout = self.rollouts[self.idx]
+            f_path = open(self.addr_lbl+workerID+"_labels.txt",'w')
+            self.Files[workerID] = f_path
             # self.idx += 1
-            self.Workers[workerID] = Camera(rollout, file_path = self.file_lbl)
+            self.Workers[workerID] = Camera(rollout, file_path = f_path)
             
         return
         
+    def saveWork(self,workerID):
+        f_path = self.Files[workerID]
+        f_path.close()
+
     def endFilm(self,workerID):
         camera = self.Workers[workerID]
 
         #Keep Track of Workers Videos 
         if(not workerID in self.Worker_Stats):
             self.Worker_Stats[workerID] = 1
+            if(self.qCheck.check_quality(camera.labels)):
+                return False
         else:
             self.Worker_Stats[workerID] += 1
 
         self.cmpl_rl.append(camera.rollout)
 
         if(len(self.cmpl_rl) == self.num_rl):
-            self.file_lbl.close()
+
             return True
         else: 
+
             self.idx+=1
             rollout = self.rollouts[self.idx]
+            f_path= self.Files[workerID]
             
-            self.Workers[workerID] = Camera(rollout,file_path = self.file_lbl)
+            self.Workers[workerID] = Camera(rollout,file_path = f_path)
             return False
 
     def notFinished(self,workerID):

@@ -8,6 +8,7 @@ if(document.body != null){
 	document.getElementById('next').style.visibility = 'hidden'
 	document.getElementById('yes').style.visibility = 'hidden'
 	document.getElementById('no').style.visibility = 'hidden'
+	document.getElementById('query').style.visibility = 'hidden'
 }
 
 // addr = '128.32.37.232'
@@ -439,6 +440,7 @@ var query_n = function(){
 
 	document.getElementById('yes').style.visibility = 'hidden'
 	document.getElementById('no').style.visibility = 'hidden'
+	document.getElementById('query').style.visibility = 'hidden'
 	complete()
 };
 
@@ -446,6 +448,7 @@ var query_y = function(){
 
 	document.getElementById('yes').style.visibility = 'hidden'
 	document.getElementById('no').style.visibility = 'hidden'
+	document.getElementById('query').style.visibility = 'hidden'
 	running = true
 	new_frame = 'true'
 };
@@ -458,6 +461,7 @@ var query = function() {
 	running = false
 	document.getElementById('yes').style.visibility = 'visible'
 	document.getElementById('no').style.visibility = 'visible'
+	document.getElementById('query').style.visibility = 'visible'
 	
 }
 
