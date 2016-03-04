@@ -18,14 +18,16 @@ class Foreman(object):
 
         self.num_rl = len(self.rollouts)
         self.cmpl_rl = []
-        self.idx = 0
+        self.idx = -1
         self.Worker_Stats = dict()
 
     def compile_list(self):
         rollouts = []
         rng = []
-      
-        for i in range(145,150):
+        rng.append(145)
+        rollouts.append("rollout"+str(145))
+
+        for i in range(146,150):
             rng.append(i)
             rollouts.append("rollout"+str(i))
         return rollouts
@@ -45,7 +47,8 @@ class Foreman(object):
     def assignWorker(self,workerID):
   
         if(not workerID in self.Workers):
-            rollout = self.rollouts[self.idx]
+            rollout = self.rollouts[0]
+
             f_path = open(self.addr_lbl+workerID+"_labels.txt",'w')
             self.Files[workerID] = f_path
             # self.idx += 1
@@ -63,22 +66,19 @@ class Foreman(object):
         #Keep Track of Workers Videos 
         if(not workerID in self.Worker_Stats):
             self.Worker_Stats[workerID] = 1
-            if(self.qCheck.check_quality(camera.labels)):
-                return False
+            if(not self.qCheck.check_quality(camera.labels)):
+                return True
         else:
             self.Worker_Stats[workerID] += 1
-
-        self.cmpl_rl.append(camera.rollout)
+            self.cmpl_rl.append(camera.rollout)
 
         if(len(self.cmpl_rl) == self.num_rl):
-
             return True
         else: 
 
             self.idx+=1
             rollout = self.rollouts[self.idx]
             f_path= self.Files[workerID]
-            
             self.Workers[workerID] = Camera(rollout,file_path = f_path)
             return False
 
