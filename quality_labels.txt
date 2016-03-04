@@ -1,0 +1,17 @@
+rollout145_frame_21.jpg -0.005 0.0 0.0 0.0
+rollout145_frame_22.jpg -0.05 0.0 0.0 0.0
+rollout145_frame_23.jpg -0.1 -0.006 0.0 0.0
+rollout145_frame_24.jpg -0.115 -0.008 0.0 0.0
+rollout145_frame_25.jpg -0.2 -0.01 0.0 0.0
+rollout145_frame_26.jpg -0.2 -0.01 0.0 0.0
+rollout145_frame_27.jpg -0.2 -0.01 0.0 0.0
+rollout145_frame_28.jpg -0.2 -0.01 0.0 0.0
+rollout145_frame_29.jpg -0.2 -0.01 0.0 0.0
+rollout145_frame_30.jpg -0.2 -0.01 0.0 0.0
+rollout145_frame_31.jpg -0.2 -0.01 0.0 0.0
+rollout145_frame_32.jpg -0.2 -0.01 0.0 0.0
+rollout145_frame_33.jpg -0.2 -0.01 0.0 0.0
+rollout145_frame_34.jpg -0.2 -0.01 0.0 0.0
+rollout145_frame_35.jpg -0.2 -0.01 0.0 0.0
+rollout145_frame_36.jpg -0.2 -0.01 0.0 0.0
+rollout145_frame_37.jpg -0.2 -0.01 0.0 0.0
