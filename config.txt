@@ -1,6 +1,6 @@
 [HIT Configuration]
-title = Learning MotorSkills via Driving Game
-description = Play a driving game and be measured how quickly you learn 
+title = Teach a Robot How Grab Objects
+description = Help a robot learn by providing feedback. You may have the option to keep providing feedback to make additional money at a similar pay rate. 
 amt_keywords = Perception, Psychology, Motor Skills 
 lifetime = 24
 us_only = true
@@ -21,7 +21,7 @@ port = 22362
 cutoff_time = 30
 logfile = server.log
 loglevel = 2
-debug = true
+debug = false
 login_username = laskeymd	
 login_pw = r060tzrcu1
 threads = auto

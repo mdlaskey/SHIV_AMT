@@ -18,6 +18,7 @@ var pages = [
 	"instructions/instruct-2.html",
 	"instructions/instruct-3.html",
 	"instructions/instruct-4.html",
+	"instructions/instruct-5.html",
 	"izzy_sim.html",
 	"video_stream.html",
 	"postquestionnaire.html"
@@ -32,6 +33,7 @@ var instructionPages = [ // add as a list as many pages as you like
 	"izzy_sim.html",
 	"instructions/instruct-3.html",
 	"instructions/instruct-4.html",
+	"instructions/instruct-5.html",
 	"video_stream.html"
 	
 ];
