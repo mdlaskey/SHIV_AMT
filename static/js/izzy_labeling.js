@@ -338,17 +338,17 @@ var update = function (modifier) {
     bgImage.src = 'http://'+addr+':5000/video_feed/'+workerID
 
 	if(65 in keysDown){ //Player holding a
-		rot_table = -0.05
+		rot_table = 0.0
 	}
 	if(68 in keysDown){ //Player holding d
-		rot_table = 0.05
+		rot_table = 0.0
 	}
 
 	if(87 in keysDown){ // Player holding w
-		grasper = 1
+		grasper = 0
 	}
 	if(83 in keysDown){ // Player holding s
-		grasper = -1
+		grasper = 0
 	}
 
 	dynamics(angle,thrust,rot_table,grasper)
