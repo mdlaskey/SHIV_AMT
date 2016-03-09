@@ -15,6 +15,8 @@ final_sleep_len = 120
 id_len = 5
 # Number of threads
 num_threads = 5
+# Time between threads
+thread_delay = 5
 
 def test_worker():
 	"""
@@ -60,7 +62,7 @@ if __name__ == '__main__':
 	threads = []
 	# Run multiple threads
 	for i in range(num_threads):
-		time.sleep(10)
+		time.sleep(thread_delay)
 		t = threading.Thread(target=test_worker)
 		threads.append(t)
 		t.start()
