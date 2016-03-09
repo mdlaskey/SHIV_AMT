@@ -10,11 +10,11 @@ import threading
 # Number of seconds to sleep between pages
 sleep_len = 1
 # Number of seconds to sleep for final video playthrough
-final_sleep_len = 5
+final_sleep_len = 120
 # Length of randomized ID
 id_len = 5
 # Number of threads
-num_threads = 1
+num_threads = 5
 
 def test_worker():
 	"""
@@ -60,6 +60,7 @@ if __name__ == '__main__':
 	threads = []
 	# Run multiple threads
 	for i in range(num_threads):
+		time.sleep(10)
 		t = threading.Thread(target=test_worker)
 		threads.append(t)
 		t.start()
