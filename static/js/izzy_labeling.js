@@ -31,8 +31,16 @@ var keysDown = {};
 curr_boxes = [];
 drawing = false;
 
-//labels
+//labels to html
 labels = ["oatmeal", "mustard", "syrup", "mayonnaise", "salad dressing"];
+var labelHTML = "";
+console.log("here")
+for (i = 0; i < labels.length; i += 1) {
+	labelHTML += "<button class='dropmenu-btn' id='drop" + i + "'>" + labels[i] + "</button>\n"
+}
+console.log(labelHTML);
+document.getElementById("labelmenu").innerHTML = labelHTML;
+
 hotkeys = ["q", "w", "e", "r", "t"]
 
 update_label(labels[0]);
