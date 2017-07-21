@@ -11,7 +11,7 @@ import numpy as np
 from PIL import Image
 from camera import Camera
 from flask import send_file
-
+import os
 
 import cPickle as pickle
 from foreman import Foreman
@@ -115,6 +115,7 @@ def gen(username, direction):
         edited = True
     else:
         edited = False
+    print("image ind " + str(worker_ind))
     frame = open("data/images/frame_" + str(worker_ind) + ".png", "rb").read()
     return (b'--frame\r\n'
            b'Content-Type: image/png\r\n\r\n' + frame + b'\r\n')
@@ -123,16 +124,6 @@ def gen(username, direction):
 @crossdomain(origin='*')
 def image_get(direction, username):
     return Response(gen(username, get_dir(direction)),mimetype='multipart/x-mixed-replace; boundary=frame')
-#
-# @custom_code.route('/image_start/<username>')
-# @crossdomain(origin='*')
-# def image_start(username):
-#     return Response(gen(username, 0),mimetype='multipart/x-mixed-replace; boundary=frame')
-#
-# @custom_code.route('/image_prev/<username>')
-# @crossdomain(origin='*')
-# def image_prev(username):
-#     return Response(gen(username, -1),mimetype='multipart/x-mixed-replace; boundary=frame')
 
 labelclasses = ["oatmeal", "mustard", "syrup", "mayonnaise", "salad dressing"] #preserve js ordering
 
@@ -150,7 +141,7 @@ def state_feed():
         edited = True
     else:
         edited = False
-
+    print("state_ind " + str(worker_ind))
     objects = []
     #group by 3s
     for datapoint in zip(*[data[1:][i::3] for i in range(3)]):
@@ -160,13 +151,19 @@ def state_feed():
         obj['wID'] = datapoint[2]
         objects.append(obj)
 
-    print(objects)
+    old_ind = get_ind(worker_ind, d * -1)
+    path = "data/labels/" + str(old_ind) + ".p"
+
     if len(objects) > 0:
         label_data = {}
         label_data['num_labels'] = len(objects)
         label_data['objects'] = objects
-        old_ind = get_ind(worker_ind, d * -1)
-        pickle.dump(label_data, open("data/labels/" + str(old_ind) + ".p",'wb'))
+        pickle.dump(label_data, open(path,'wb'))
+    else:
+        try:
+            os.remove(path)
+        except OSError:
+            pass
 
     try:
         next_data = pickle.load( open("data/labels/" + str(worker_ind) + ".p", "rb"))

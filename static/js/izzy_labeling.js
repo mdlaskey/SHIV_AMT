@@ -34,6 +34,7 @@ drawing = false;
 //labels
 labels = ["oatmeal", "mustard", "syrup", "mayonnaise", "salad dressing"];
 hotkeys = ["q", "w", "e", "r", "t"]
+
 update_label(labels[0]);
 colors = ['#FF0000', '#0000FF', '#00FFFF', '#00FF00', '#000000'];
 color_ind = 0;
@@ -235,6 +236,18 @@ var main = function () {
 var w = window;
 requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame || w.msRequestAnimationFrame || w.mozRequestAnimationFrame;
 var then = Date.now();
+//load labels
+function getTextFile(path) {
+    var request = new XMLHttpRequest();
+    request.open("GET", path, false);
+    request.send(null);
+    var returnValue = request.responseText;
+    return returnValue;
+}
+
+var text = getTextFile("new_config.txt")
+console.log(text)
+//start up
 updateData("start");
 updateImg("start");
 main();
