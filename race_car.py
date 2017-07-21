@@ -5,8 +5,8 @@ sys.path.append('/Users/michaelluskey/Documents/RL/LFD/lapmaster1.1/')
 #sys.path.append('/home/laskeymd/RL')
 
 
-import IPython 
-import cv2 
+import IPython
+import cv2
 import numpy as np
 from PIL import Image
 from camera import Camera
@@ -53,7 +53,7 @@ Coaches = dict()
 camera = []
 
 foreman = []
-global lock 
+global lock
 #rc11 = pickle.load(open('/Users/michaelluskey/Documents/RL/LFD/AMT_Experiment/RoboCont.p'))
 
 def crossdomain(origin=None, methods=None, headers=None,
@@ -97,80 +97,88 @@ def crossdomain(origin=None, methods=None, headers=None,
         return update_wrapper(wrapped_function, f)
     return decorator
 
+worker_ind = 0
+edited = False
 
-def gen(username):
-    """Video streaming generator function."""
-    while True:
-        camera = foreman.getWork(username)
-        if( not lock):
-            if(camera.pre_f()):
-                frame = camera.get_pre_frame()
-            else:
-                frame = camera.get_frame()
-            # cv2.imshow("camera",frame)
-            # cv2.waitKey(30)
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+def get_ind(ind, direction):
+    num_images = 10
+    return 0 if direction == 0 else (ind + direction) % (num_images + 1)
 
+def get_dir(val):
+    return {"start": 0, "next": 1, "prev": -1}[val]
 
-@custom_code.route('/video_feed/<username>')
+def gen(username, direction):
+    global worker_ind
+    global edited
+    if not edited:
+        worker_ind = get_ind(worker_ind, direction)
+        edited = True
+    else:
+        edited = False
+    frame = open("data/images/frame_" + str(worker_ind) + ".png", "rb").read()
+    return (b'--frame\r\n'
+           b'Content-Type: image/png\r\n\r\n' + frame + b'\r\n')
+
+@custom_code.route('/image_<direction>/<username>')
 @crossdomain(origin='*')
-def video_feed(username):
-	"""Video streaming route. Put this in the src attribute of an img tag."""
-	foreman.assignWorker(username)
-	print "TRYING TO GET CAMERA"
-	return Response(gen(username),mimetype='multipart/x-mixed-replace; boundary=frame')
+def image_get(direction, username):
+    return Response(gen(username, get_dir(direction)),mimetype='multipart/x-mixed-replace; boundary=frame')
+#
+# @custom_code.route('/image_start/<username>')
+# @crossdomain(origin='*')
+# def image_start(username):
+#     return Response(gen(username, 0),mimetype='multipart/x-mixed-replace; boundary=frame')
+#
+# @custom_code.route('/image_prev/<username>')
+# @crossdomain(origin='*')
+# def image_prev(username):
+#     return Response(gen(username, -1),mimetype='multipart/x-mixed-replace; boundary=frame')
+
+labelclasses = ["oatmeal", "mustard", "syrup", "mayonnaise", "salad dressing"] #preserve js ordering
 
 @custom_code.route('/state_feed')
 @crossdomain(origin='*')
 def state_feed():
-    """Return states of current image."""
-    data = dict(request.args)
-    global lock
+    global worker_ind
+    global edited
+    data = dict(request.args)['undefined']
+    direction = data[0]
+    d = get_dir(direction)
 
-    wID = data['undefined'][0]
-    video_id = data['undefined'][1]
-    state = data['undefined'][2].split()
-    label =  data['undefined'][3].split()
-    first = data['undefined'][5] == 'true'
-    n_cam = data['undefined'][6] == 'true'
+    if not edited:
+        worker_ind = get_ind(worker_ind, d) #needs to be synced
+        edited = True
+    else:
+        edited = False
 
-    idx =  int(data['undefined'][4])
+    objects = []
+    #group by 3s
+    for datapoint in zip(*[data[1:][i::3] for i in range(3)]):
+        obj = {}
+        obj['box_index'] = datapoint[0]
+        obj['num_class_label'] = labelclasses.index(datapoint[1])
+        obj['wID'] = datapoint[2]
+        objects.append(obj)
 
-    if(n_cam):
-        lock = False
+    print(objects)
+    if len(objects) > 0:
+        label_data = {}
+        label_data['num_labels'] = len(objects)
+        label_data['objects'] = objects
+        old_ind = get_ind(worker_ind, d * -1)
+        pickle.dump(label_data, open("data/labels/" + str(old_ind) + ".p",'wb'))
 
-    if(not lock):
-        foreman.assignWorker(wID)
+    try:
+        next_data = pickle.load( open("data/labels/" + str(worker_ind) + ".p", "rb"))
+        all_data = []
+        for obj in next_data['objects']:
+            bounds = obj['box_index']
+            label = labelclasses[obj['num_class_label']]
+            all_data.append([bounds, label])
+        return jsonify(result={"status": 200}, next_data=all_data)
+    except (OSError, IOError) as e:
+        return jsonify(result={"status": 200}, next_data=-1)
 
-        camera = foreman.getWork(wID)
-
-        if(video_id == 'not_init' or camera.pre_f()):
-            [state,idx] = camera.get_state()
-        else:
-            [state,idx] = camera.get_state()
-            camera.writeImage(label,idx)
-
-
-        end_n = False
-        query = False
-        if(not camera.pre_f()):
-            if(camera.end(idx)):
-                lock = True
-                end_n = foreman.endFilm(wID)
-                
-                if(not end_n):
-                    query = True
-        else: 
-            camera.end(idx)
-
-        return jsonify(result={"status": 200}, items = state,idx = idx, id = camera.get_vid(),end = end_n, query = query)
-    
-
-    # if(idx > 20):
-    #     IPython.embed()
-
-    
 
 @custom_code.route('/save_data')
 @crossdomain(origin='*')
@@ -184,5 +192,5 @@ if __name__ == '__main__':
     print "running"
     foreman = Foreman()
     lock = False
-    
+
     custom_code.run(host='0.0.0.0', threaded = True)

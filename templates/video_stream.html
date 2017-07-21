@@ -2,47 +2,95 @@
 	<head>
 		<meta charset="utf-8">
 		<title>Simple Canvas Game</title>
+		<style>
+			table, td { border: 1px solid black;}
+			.dropbtn {
+			    background-color: #4C50AF;
+			    color: white;
+			    padding: 16px;
+			    font-size: 16px;
+			    border: none;
+			    cursor: pointer;
+				width:200px;
+			}
+
+			.dropdown {
+			    position: relative;
+			    display: inline-block;
+			}
+
+			.dropdown-content {
+			    display: none;
+			    position: absolute;
+			    background-color: #f9f9f9;
+			    min-width: 200px;
+			    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+			    z-index: 1;
+			}
+
+			.dropdown-content a {
+			    color: black;
+			    padding: 12px 16px;
+			    text-decoration: none;
+			    display: block;
+			}
+
+			.dropdown-content a:hover {background-color: #f1f1f1}
+
+			.dropdown:hover .dropdown-content {
+			    display: block;
+			}
+
+			.dropdown:hover .dropbtn {
+			    background-color: #1C407F;
+			}
+			.dropmenu-btn{
+				width:200px;
+			}
+		</style>
 	</head>
 	<center>
 	<body>
-		<div id="background" class="static/images/background.jpg" ></div>
 		<script src="static/js/izzy_labeling.js"></script>
-		<canvas id="canvas" width="420" height="420"></canvas>
+		<canvas id="imgcanvas" width="420" height="420" style="float:left"></canvas>
+		<canvas id="bboxcanvas" width="420" height="420" style="position:absolute;left:0px;top:0px;"></canvas>
+		<table id="boxinfo" style="empty-cells:show;">
+		</table>
+		<div style="clear:both"> </div>
 	</body>
-	 	<p>
-            Hold the MOUSE DOWN and DRAG to correct Izzy's ARM.
-        </p>
-
-        <p>
-            The GRIPPER is OPENED with W and CLOSED with S. 
-        </p>
-
+ 	<p>
+        Click then drag to draw a bounding box. <br>
+        Make sure the correct object class is selected.
+    </p>
 	<center/>
 
     <div style="margin-left:auto; margin-right:auto;">
         <div class="row" style="margin-left:auto; margin-right:auto;">
             <div class="col-xs-100" style="margin-left:auto; margin-right:auto;">
-                <input type="button" id="yes" value="yes" />
-                
-             
+				<div class="dropdown">
+				  <button class="dropbtn">Class: <p id="clabel"> </p></button>
+				  <div class="dropdown-content">
+				  	<button class="dropmenu-btn" id="drop0">Oatmeal</button>
+					<button class="dropmenu-btn" id="drop1">Mustard</button>
+					<button class="dropmenu-btn" id="drop2">Syrup</button>
+					<button class="dropmenu-btn" id="drop3">Mayonnaise</button>
+					<button class="dropmenu-btn" id="drop4">Salad Dressing</button>
+				  </div>
+				</div>
+                <input type="button" id="clear" value="clear all" />
             </div>
         </div>
     </div>
 
-    <div style="margin-left:auto; margin-right:auto;">
-        <div class="row" style="margin-left:auto; margin-right:auto;">
-            <div class="col-xs-100" style="margin-left:auto; margin-right:auto;">
-                <input type="button" id="no" value="no" />
-                
-            </div>
-        </div>
-    </div>
 
     <div  style="margin-left:auto; margin-right:auto;">
         <div class="row" style="margin-left:auto; margin-right:auto;">
             <div class="col-xs-100" style="margin-left:auto; margin-right:auto;">
+				<button type="button" id="prev" value="prev" class="btn btn-primary btn-lg continue">
+                	<span class="glyphicon glyphicon-arrow-left"></span> Prev
+                </button>
                 <button type="button" id="next" value="next" class="btn btn-primary btn-lg continue">
-                Next <span class="glyphicon glyphicon-arrow-right"></span>
+                	Next <span class="glyphicon glyphicon-arrow-right"></span>
                 </button>
             </div>
         </div>
