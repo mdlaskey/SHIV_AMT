@@ -115,7 +115,6 @@ def gen(username, direction):
         edited = True
     else:
         edited = False
-    print("image ind " + str(worker_ind))
     frame = open("data/images/frame_" + str(worker_ind) + ".png", "rb").read()
     return (b'--frame\r\n'
            b'Content-Type: image/png\r\n\r\n' + frame + b'\r\n')
@@ -141,7 +140,6 @@ def state_feed():
         edited = True
     else:
         edited = False
-    print("state_ind " + str(worker_ind))
     objects = []
     #group by 3s
     for datapoint in zip(*[data[1:][i::3] for i in range(3)]):
@@ -150,7 +148,6 @@ def state_feed():
         obj['num_class_label'] = labelclasses.index(datapoint[1])
         obj['wID'] = datapoint[2]
         objects.append(obj)
-
     old_ind = get_ind(worker_ind, d * -1)
     path = "data/labels/" + str(old_ind) + ".p"
 
@@ -159,7 +156,7 @@ def state_feed():
         label_data['num_labels'] = len(objects)
         label_data['objects'] = objects
         pickle.dump(label_data, open(path,'wb'))
-    else:
+    elif d != 0:
         try:
             os.remove(path)
         except OSError:

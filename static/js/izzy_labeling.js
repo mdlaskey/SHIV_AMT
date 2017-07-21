@@ -34,11 +34,9 @@ drawing = false;
 //labels to html
 labels = ["oatmeal", "mustard", "syrup", "mayonnaise", "salad dressing"];
 var labelHTML = "";
-console.log("here")
 for (i = 0; i < labels.length; i += 1) {
 	labelHTML += "<button class='dropmenu-btn' id='drop" + i + "'>" + labels[i] + "</button>\n"
 }
-console.log(labelHTML);
 document.getElementById("labelmenu").innerHTML = labelHTML;
 
 hotkeys = ["q", "w", "e", "r", "t"]
@@ -111,7 +109,7 @@ function addBbox(bounds, label) {
 		table.deleteRow(ind);
 		curr_boxes.splice(ind, 1);
 	}
-	cell.innerHTML = curr_label + ": (" + x1 + "," + y1 + ") -> (" + x2 + "," + y2 + ")";
+	cell.innerHTML = label + ": (" + x1 + "," + y1 + ") -> (" + x2 + "," + y2 + ")";
 	cell.style.color = c;
 }
 
@@ -253,8 +251,6 @@ function getTextFile(path) {
     return returnValue;
 }
 
-var text = getTextFile("new_config.txt")
-console.log(text)
 //start up
 updateData("start");
 updateImg("start");
