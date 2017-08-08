@@ -1,5 +1,6 @@
 import os
 import Pyro4
+import time
 
 sharer = Pyro4.Proxy("PYRONAME:shared.server")
 
@@ -9,6 +10,7 @@ def label_image(img):
     sharer.set_img(img)
     sharer.set_img_ready(True)
 
+    print("robot waiting")
     while not sharer.is_labeled():
         pass
 
@@ -17,6 +19,7 @@ def label_image(img):
 
     return label
 
-ind = 0
-frame = open("data/images/frame_" + str(ind) + ".png", "rb").read()
-x = label_image(frame)
+for ind in range(0, 6):
+    frame = "data/images/frame_" + str(ind) + ".png"
+    x = label_image(frame)
+    time.sleep(5)

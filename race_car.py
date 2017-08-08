@@ -98,11 +98,12 @@ def crossdomain(origin=None, methods=None, headers=None,
         return update_wrapper(wrapped_function, f)
     return decorator
 
-frame = None
 sharer = Pyro4.Proxy("PYRONAME:shared.server")
 
 def gen(username):
-    global frame
+    global sharer
+    name = sharer.get_img()
+    frame = open(name, "rb").read()
 
     return (b'--frame\r\n'
            b'Content-Type: image/png\r\n\r\n' + frame + b'\r\n')
@@ -131,21 +132,19 @@ def state_feed():
             obj['num_class_label'] = labelclasses.index(datapoint[1])
             obj['wID'] = datapoint[2]
             objects.append(obj)
-    else:
-        objects = []
 
-    label_data = {}
-    label_data['num_labels'] = len(objects)
-    label_data['objects'] = objects
+            label_data = {}
+            label_data['num_labels'] = len(objects)
+            label_data['objects'] = objects
 
-    sharer.set_label_data(label_data)
-    sharer.set_labeled(False)
+            sharer.set_label_data(label_data)
+            sharer.set_labeled(True)
 
+    print("server waiting")
     while not sharer.is_img_ready():
         pass
 
     sharer.set_img_ready(False)
-    frame = sharer.get_img()
 
     return jsonify(result={"status": 200})
 
